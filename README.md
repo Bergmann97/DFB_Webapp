@@ -11,39 +11,55 @@ Each football association includes one or more leagues, that include the footbal
 ***
 
 ## Application Explanation & Requirements
-### Title
-**DFB Structuring Application**
 
-### Domain Name
-**dfb-organization**
+**Title**: *DFB Structuring Application*
+
+**Domain Name**: *dfb-organization*
 
 ### Purpose of the app
-The app should be used for organizing and manage the structures of the DFB. It will therefore, have the task for handling the associations of the DFB and the associated football clubs. Each association will have a name, a president and number of associated football clubs and members, as well as an optional association to an superior football association. The associated football clubs, will have a reference to the association, as well as a name, a coach and a list of players, as well as a number of members of the club. Each person should get a name and a type that symolizes what he does, which could be member, player or coach (additional a reference to an association or football club could be given). Each player and coach can only be assigned to one football club, but each person can be assigned to different associations or football clubs as a member at the same time.
 
-Beside the structure of associations and football clubs, their should also be the possibility for organizing the national teams with players and coaches, where the players need to be assigned to a football club and the coach should not be assigned to any football club. For simplicity we will ignore the youth national teams (can additionally be implemented).
+The app should be used for organizing and manage the structures of the DFB. It will therefore, have the task for handling the football associations of the DFB and the associated football clubs. Each **football association** will have a *name*, a *president* and *number of associated football clubs and members*, as well as an optional association to an *superior football association*. The associated **football clubs**, will have a reference to the *football association*, as well as a *name*, a *coach* and a *list of players*, as well as a *number of members* of the club. Each **person** should get a *name* and a *type*, that represents if he is a president, coach, player and/or member, and additional an *association to the football club or football association*.
 
-***additional:***
-When handling the described parts, it is also needed that the differntiation into men and women is made (person gets also an attribute for the gender). This means, that there are some associations that handle the football clubs for men and some for women. This means that only women can be assigned to a football club that belongs to a women football association, but a football club can have a male coach, even if it belongs to a football association.
+Each *player* and *coach* can only be assigned to one football club, but each person can be assigned to different associations or football clubs as a member at the same time.
+
+Each *football association* can have a superior football association (example below) and can have multiple associated *football clubs*, but each football club can only be assigned to one football association.
+
+Beside the structure of associations and football clubs, their should also be the possibility for organizing the **national teams** with *players* and *coaches*.
+
+Each *player* of the national team must be assigned to a football club. The *coach* should not be assigned to any football club or other national team.
+
+For simplicity we will ignore the youth national teams (can additionally be implemented).
+
+***additional:***</br>
+When handling the described parts, it is also needed that the differntiation into men and women is made (person gets also an attribute for the gender). This means, that there are some associations that handle the football clubs for men and some for women. This means that only women can be assigned to a football club that belongs to a women football association, but a women football club can have a male coach.
 
 ***
 
 ## List of Information Management tasks
-- handle *person* (**CRUD**)
-    - attributes: name, type (player, coach, member, president)
-        - optional attributes: gender, football association, football club (as employee or member), national team (boolean)
-- handle *football club* (**CRUD**)
-    - attributes: name, president, #members, football association
-- handle *football association* (**CRUD**)
-    - attributes: name, president, #members, football association (optional), #members, #football clubs
-- handle national team (**CRUD**)
-    - attributes: gender, coach, players
-        - optional attributes: youth
 
-- handle **associations** of
-    - person to
-        - football club/association as member
-        - football club as employee (coach or player)
-        - football club/association as president
-        - national team as coach or player
-    - football club to football association
-    - football association to superior football association
+- **person**:
+  - create *person*
+  - update *person*
+  - delete *person*
+  - display *persons*
+
+- **football club**:
+  - create *football club*
+  - update *football club*
+  - display *football clubs*
+
+- **football association**:
+  - create *football association*
+  - update *football association*
+  - display *football associations*
+
+- **national team**:
+  - create *national team*
+  - update *national team*
+  - display *national teams*
+
+***
+
+## Example Data for better Understanding
+
+![Example Data](./exampleData.png)
