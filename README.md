@@ -63,3 +63,38 @@ When handling the described parts, it is also needed that the differntiation int
 ## Example Data for better Understanding
 
 ![Example Data](./exampleData.png)
+
+## Use-Cases
+- the user can create a new Account
+- the user can login / logout to his account
+- Account types should represent the different types of Persons (Member / Player / Coach / President ...)
+- depending on the account type the user can do different tasks:
+
+### All users:
+- can view the lists of associations / clubs / teams
+
+### Members:
+- can join / leave associations and football clubs
+
+### Players:
+- can join a football club
+- can leave a football club
+- can transfer to other clubs [short for leave + join]
+- can join the national team (if he is member of a regular club)
+- can leave the national team
+
+### Coaches:
+- can join a football club
+- can leave a football club
+- (can change to another club) [short for leave + join]
+- can change to the national team (by leaving his club)
+- can add players to his team
+- can remove players from his team
+- (can transfer players to other teams) [short for remove + add]
+
+### Presidents
+- can join an association
+- can leave an association
+- can add football clubs to the association
+- can remove football clubs from the association
+- can move his association (except the DFB) to another superior association 
