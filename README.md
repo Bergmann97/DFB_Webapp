@@ -93,3 +93,26 @@ When handling the described parts, it is also needed that the differentiation in
 ## **Example Data for better Understanding**
 
 ![Example Data](./exampleData.png)
+
+***
+
+## **Requirements Elaboration (Information Management tasks)**
+| Requirements from client | Elaborated requirements |
+| --- | --- |
+| **Person** | Types: Member/ Player/ Coach/ President |
+| Create person | Create a new person record with information (name, age, gender, type of person, association to the football club or football association) |
+| Update person | Modify data of an existing person |
+| Delete person | Delete data of a person |
+| Display persons | Show a list of persons depending on the type of person |
+| **Football club** |  |
+| Create football club | Create a new football club record with information (referenced football association, name, coach, players, number of members of club) |
+| Update football club | Modify data of an existing football club |
+| Display football clubs | Show a list of football clubs |
+| **Football association** |  |
+| Create football association | Create a new football association record with information (name, president, number of associated football clubs, members, superior football association (optional)) |
+| Update football association | Modify data of an existing football association |
+| Display football associations | Show a list of football associations |
+| **National team** |  |
+| Create national team | Create a new national team record by adding/selecting players and coach/es |
+| Update national team | Modify a national team data (add/remove players or coach/es) |
+| Display national teams | Show information of players and coach/es who are in a national team |
