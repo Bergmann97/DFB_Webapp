@@ -100,7 +100,7 @@ When handling the described parts, it is also needed that the differentiation in
 | Requirements from client | Elaborated requirements |
 | --- | --- |
 | **Person** | Types: Member/ Player/ Coach/ President |
-| Create person | Create a new person record with information (name, age, gender, type of person, association to the football club or football association) |
+| Create person | Create a new person record with information (name, date of birth, gender, type of person, association to the football club or football association) |
 | Update person | Modify data of an existing person |
 | Delete person | Delete data of a person |
 | Display persons | Show a list of persons depending on the type of person |
