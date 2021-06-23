@@ -113,6 +113,15 @@ When handling the described parts, it is also needed that the differentiation in
 | Update football association | Modify data of an existing football association |
 | Display football associations | Show a list of football associations (including the number of associated football clubs) |
 | **National team** |  |
-| Create national team | Create a new national team record by adding/selecting players and coach/es and gender information is additionally needed |
-| Update national team | Modify a national team data (add/remove players or coach/es) |
-| Display national teams | Show information of players and coach/es who are in a national team |
+| Create national team | Create a new national team record by adding/selecting players and coach and gender information is additionally needed |
+| Update national team | Modify a national team data (add/change players or change coach) |
+| Display national teams | Show information of players and coach who are in a national team |
+***
+
+## **Domain Model**
+![Domain Model](./domain_model.png)
+***
+
+## **Design Model**
+![Design Model](./design_model.png)
+***
