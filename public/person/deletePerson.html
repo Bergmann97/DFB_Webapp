@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Person: Delete</title>
+  <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-firestore.js"></script>
+
+  <link rel="icon" type="image/png" href="../favicon.ico"/>
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
+  <link rel="manifest" href="../manifest.json"/>
+
+  <script src="../js/c/initialize.js"></script>
+  <script src="../js/v/person/deletePerson.mjs" type="module"></script>
+
+  <link rel="stylesheet" href="../css/normalize.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+<header>
+  <div class="wrapper clearfix">
+    <div class="title">
+      <figure><a href="../index.html">
+        <img alt="" title="Home Button"
+             src="../android-chrome.png" /></a></figure>
+      <h2>Deutscher Fußball-Bund (DFB)</h2>
+    </div>
+    <div class="dropdown">
+      <button class="dropbtn">Person</button>
+      <div class="dropdown-content">
+        <a href="createPerson.html">Create</a>
+        <a href="retrieveAndListAllPersons.html">List</a>
+        <a href="updatePerson.html">Update</a>
+        <a href="deletePerson.html">Delete</a>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="wrapper clearfix">
+    <h2 class="intitle">Delete a Person</h2>
+    <form id="Person">
+      <div>
+        <label>Select person:
+          <select name="selectPerson">
+            <option value=""> ---</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <button name="commit" type="button">Delete</button>
+      </div>
+    </form>
+    <a href="../index.html">Back to main menu</a>
+  </div>
+</main>
+<footer>
+  <div class="foot-content wrapper">
+    Copyright © 2021 Mina Lee (Web Applications | SS 2021),
+    Cyber Security,
+    Brandenburg University of Technology, Germany.
+  </div>
+</footer>
+</body>
+</html>

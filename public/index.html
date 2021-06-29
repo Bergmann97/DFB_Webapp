@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>DFB - Deutscher Fußball-Bund e.V.</title>
+    <meta name="description" content="DFB - Deutscher Fußball-Bund e.V.">
+    <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-firestore.js"></script>
+
+    <link rel="icon" type="image/png" href="favicon.ico"/>
+    <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+    <link rel="manifest" href="manifest.json"/>
+
+    <script src="./js/c/initialize.js"></script>
+    <!--  <script type= "module" src="./js/m/Person.mjs"></script>-->
+
+    <link rel="stylesheet" href="./css/normalize.css"/>
+    <link rel="stylesheet" href="./css/main.css"/>
+
+    <script type="module">
+        import Person from "./js/m/Person.mjs";
+
+
+        const clearButtonPerson = document.getElementById("clearDataPerson"),
+            generateTestDataButtonsPerson = document.querySelectorAll("button.generateTestDataPerson");
+        // Set event handlers for the buttons "clearData" and "generateTestData"
+        clearButtonPerson.addEventListener("click", Person.clearData);
+        for (const btn of generateTestDataButtonsPerson) {
+            btn.addEventListener("click", Person.generateTestData);
+        }
+    </script>
+</head>
+<body>
+<header>
+    <div class="wrapper clearfix">
+        <div class="title">
+            <figure><a href="./index.html">
+                <img alt="" title="Home Button"
+                     src="android-chrome.png" /></a></figure>
+            <h2>Deutscher Fußball-Bund (DFB)</h2>
+        </div>
+        <!--    <nav>-->
+        <div class="dropdown">
+            <button class="dropbtn">Person</button>
+            <div class="dropdown-content">
+                <a href="./person/createPerson.html">Create</a>
+                <a href="./person/retrieveAndListAllPersons.html">List</a>
+                <a href="./person/updatePerson.html">Update</a>
+                <a href="./person/deletePerson.html">Delete</a>
+            </div>
+        </div>
+    </div>
+</header>
+<main>
+    <div class="wrapper clearfix">
+        <div class="desc">
+            <p>&nbsp;The German Football Association (DFB) is the head of football in Germany and is
+                one of the founding members of the FIFA and UEFA. It includes 26 football associations
+                with around 24'500 football clubs. The headquarter of the DFB is in Frankfurt am Main.
+                It has also more than 7 Million members and is therefore, the greatest national sports association.
+                As the national football association it also organizes the national teams for women and men,
+                in case of players and coach.</p>
+            <p>&nbsp;The app should be used for organizing and manage the structures of the DFB.
+                It will therefore, have the task for handling the football associations of the DFB and
+                the associated football clubs. Each football association will have a name, a president
+                and number of associated football clubs and members, as well as an optional association
+                to an superior football association. The associated football clubs, will have a reference
+                to the football association, as well as a name, a coach and a list of players, as well as
+                a number of members of the club. Each person should get a name, an age and a type,
+                that represents if he is a president, coach, player and/or member, and additional
+                an association to the football club or football association.</p>
+        </div>
+        <ul class="menu">
+            <li><button type="button" class="generateTestDataPerson">[Person] Generate test data</button></li>
+            <li><button type="button" id="clearDataPerson">[Person] Clear database</button></li>
+        </ul>
+    </div>
+</main>
+<footer class="Footer">
+    <div class="foot-content wrapper">
+        Copyright © 2021 Mina Lee (Web Applications | SS 2021),
+        Cyber Security,
+        Brandenburg University of Technology, Germany.
+    </div>
+</footer>
+</body>
+</html>

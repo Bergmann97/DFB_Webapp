@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Person: Create</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#ffffff"/>
+
+  <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-firestore.js"></script>
+
+  <link rel="icon" type="image/png" href="../favicon.ico"/>
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
+  <link rel="manifest" href="../manifest.json"/>
+
+  <script src="../js/c/initialize.js"></script>
+  <!--  <script src="js/m/Person.mjs" type="module"></script>-->
+  <script src="../js/v/person/createPerson.mjs" type="module"></script>
+
+  <link rel="stylesheet" href="../css/normalize.css"/>
+  <link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+<header>
+  <div class="wrapper clearfix">
+    <div class="title">
+      <figure><a href="../index.html">
+        <img alt="" title="Home Button"
+             src="../android-chrome.png" /></a></figure>
+      <h2>Deutscher Fußball-Bund (DFB)</h2>
+    </div>
+    <div class="dropdown">
+      <button class="dropbtn">Person</button>
+      <div class="dropdown-content">
+        <a href="createPerson.html">Create</a>
+        <a href="retrieveAndListAllPersons.html">List</a>
+        <a href="updatePerson.html">Update</a>
+        <a href="deletePerson.html">Delete</a>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="wrapper clearfix">
+    <h2 class="intitle">Create a new Person</h2>
+    <form id="Person">
+      <div class="field">
+        <label>Person ID: <input type="text" name="personId"/></label>
+      </div>
+      <div class="field">
+        <label>Name: <input type="text" name="name"/></label>
+      </div>
+      <div class="field">
+        <label>Date of Birth: <input type="date" name="dateOfBirth" /></label>
+      </div>
+
+      <fieldset data-bind="gender">
+        <legend>Gender</legend>
+      </fieldset>
+
+      <fieldset data-bind="type">
+        <legend>Type</legend>
+      </fieldset>
+
+      <!--    <div class="field Member">&lt;!&ndash; conditional field &ndash;&gt;-->
+      <!--      <div class="select-many">-->
+      <!--        <label>Associated Clubs:-->
+      <!--          <select name="selectAssoClubs" multiple="multiple"></select>-->
+      <!--        </label>-->
+      <!--      </div>-->
+      <!--      <div class="select-many">-->
+      <!--        <label>Associated Associations:-->
+      <!--          <select name="selectAssoAssociations" multiple="multiple"></select>-->
+      <!--        </label>-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--    <div class="field Player">&lt;!&ndash; conditional field &ndash;&gt;-->
+      <!--      <div>-->
+      <!--        <label>Associated Club:-->
+      <!--          <select name="selectClubPlayer">-->
+      <!--            <option value=""> -&#45;&#45;</option>-->
+      <!--          </select>-->
+      <!--        </label>-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--    <div class="field Coach">&lt;!&ndash; conditional field &ndash;&gt;-->
+      <!--      <div>-->
+      <!--        <label>Associated Club:-->
+      <!--          <select name="selectClubCoach">-->
+      <!--            <option value=""> -&#45;&#45;</option>-->
+      <!--          </select>-->
+      <!--        </label>-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <!--    <div class="field President">&lt;!&ndash; conditional field &ndash;&gt;-->
+      <!--      <div>-->
+      <!--        <label>Associated Association:-->
+      <!--          <select name="selectAssociation">-->
+      <!--            <option value=""> -&#45;&#45;</option>-->
+      <!--          </select>-->
+      <!--        </label>-->
+      <!--      </div>-->
+      <!--    </div>-->
+      <div>
+        <button name="commit" type="button">Save</button>
+        <progress id="clearData" style="display:none"></progress>
+      </div>
+    </form>
+    <a href="../index.html">Back to main menu</a>
+  </div>
+</main>
+<footer>
+  <div class="foot-content wrapper">
+    Copyright © 2021 Mina Lee (Web Applications | SS 2021),
+    Cyber Security,
+    Brandenburg University of Technology, Germany.
+  </div>
+</footer>
+</body>
+</html>
