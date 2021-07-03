@@ -18,3 +18,5 @@ if (!firebase.apps.length) {
 }
 // initialize Firestore database interface
 const db = firebase.firestore();
+// initialize Firebase user authentication interface
+var auth = firebase.auth();
