@@ -13,12 +13,23 @@
 
   <script src="../js/c/initialize.js"></script>
   <script src="../js/v/person/deletePerson.mjs" type="module"></script>
+  <script src="../js/v/authenticateUser.js"></script>
+
+  <script>
+    window.addEventListener("load", function () {
+      setupUiByUserStatus();
+    });
+  </script>
 
   <link rel="stylesheet" href="../css/normalize.css"/>
   <link rel="stylesheet" href="../css/main.css"/>
 </head>
 <body>
 <header>
+  <div id="login-management">
+    <small hidden="hidden"><a href="../authenticateUser.html">Sign in or Sign up</a> for using the disabled operations</small>
+    <small hidden="hidden"><button type="button" id="signOut">Sign out</button></small>
+  </div>
   <div class="wrapper clearfix">
     <div class="title">
       <figure><a href="../index.html">
@@ -29,10 +40,10 @@
     <div class="dropdown">
       <button class="dropbtn">Person</button>
       <div class="dropdown-content">
-        <a href="createPerson.html">Create</a>
+        <a href="createPerson.html" class="disabled">Create</a>
         <a href="retrieveAndListAllPersons.html">List</a>
-        <a href="updatePerson.html">Update</a>
-        <a href="deletePerson.html">Delete</a>
+        <a href="updatePerson.html" class="disabled">Update</a>
+        <a href="deletePerson.html" class="disabled">Delete</a>
       </div>
     </div>
   </div>

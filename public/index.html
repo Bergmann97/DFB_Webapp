@@ -13,26 +13,35 @@
     <link rel="manifest" href="manifest.json"/>
 
     <script src="./js/c/initialize.js"></script>
-    <!--  <script type= "module" src="./js/m/Person.mjs"></script>-->
+    <script src="./js/v/authenticateUser.js"></script>
 
     <link rel="stylesheet" href="./css/normalize.css"/>
     <link rel="stylesheet" href="./css/main.css"/>
 
+    <script>
+        window.addEventListener("load", function () {
+            setupUiByUserStatus();
+        });
+    </script>
+
     <script type="module">
         import Person from "./js/m/Person.mjs";
 
-
-        const clearButtonPerson = document.getElementById("clearDataPerson"),
-            generateTestDataButtonsPerson = document.querySelectorAll("button.generateTestDataPerson");
-        // Set event handlers for the buttons "clearData" and "generateTestData"
-        clearButtonPerson.addEventListener("click", Person.clearData);
-        for (const btn of generateTestDataButtonsPerson) {
-            btn.addEventListener("click", Person.generateTestData);
-        }
+        window.addEventListener("load", function() {
+            const clearButtonPerson = document.getElementById("clearDataPerson"),
+                generateTestDataButtonsPerson = document.getElementById("generateTestDataPerson");
+            // Set event handlers for the buttons "clearData" and "generateTestData"
+            clearButtonPerson.addEventListener("click", Person.clearData);
+            generateTestDataButtonsPerson.addEventListener("click", Person.generateTestData);
+        });
     </script>
 </head>
 <body>
 <header>
+    <div id="login-management">
+        <small hidden="hidden"><a href="authenticateUser.html">Sign in or Sign up</a> for using the disabled operations</small>
+        <small hidden="hidden"><button type="button" id="signOut">Sign out</button></small>
+    </div>
     <div class="wrapper clearfix">
         <div class="title">
             <figure><a href="./index.html">
@@ -40,14 +49,13 @@
                      src="android-chrome.png" /></a></figure>
             <h2>Deutscher Fußball-Bund (DFB)</h2>
         </div>
-        <!--    <nav>-->
         <div class="dropdown">
             <button class="dropbtn">Person</button>
             <div class="dropdown-content">
-                <a href="./person/createPerson.html">Create</a>
+                <a href="./person/createPerson.html" class="disabled">Create</a>
                 <a href="./person/retrieveAndListAllPersons.html">List</a>
-                <a href="./person/updatePerson.html">Update</a>
-                <a href="./person/deletePerson.html">Delete</a>
+                <a href="./person/updatePerson.html" class="disabled">Update</a>
+                <a href="./person/deletePerson.html" class="disabled">Delete</a>
             </div>
         </div>
     </div>
@@ -72,8 +80,10 @@
                 an association to the football club or football association.</p>
         </div>
         <ul class="menu">
-            <li><button type="button" class="generateTestDataPerson">[Person] Generate test data</button></li>
-            <li><button type="button" id="clearDataPerson">[Person] Clear database</button></li>
+            <li><button type="button" id="generateTestDataPerson"
+                        class="generateTestData" disabled="disabled">[Person] Generate test data</button></li>
+            <li><button type="button" id="clearDataPerson"
+                        class="clearData" disabled="disabled">[Person] Clear database</button></li>
         </ul>
     </div>
 </main>

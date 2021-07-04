@@ -199,6 +199,27 @@ button {
     border-radius: 2px;
 }
 
+a.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: default;
+}
+
+div#login-management {
+    text-align: right;
+    padding: 1em;
+    background: #eef6e1;
+    border: 1px solid #cfe08e;
+}
+
+#error {
+    color: #ff3300;
+    text-align: right;
+    padding: 1em;
+    background: #fff4f4;
+    border: 1px solid #ff7653;
+}
+
 div label, legend #text{
     font-weight: bold;
 }
@@ -290,6 +311,8 @@ form > div > label > input[type="checkbox"],
 form > div > label > select,
 form > div > label > div.MultiChoiceWidget,
 form > div > label > input[type="date"],
+form > div > label > input[type="email"],
+form > div > label > input[type="password"],
 form > div > label > output {
     position: absolute;
     left: 12em;
