@@ -30,13 +30,30 @@ function setupUiByUserStatus() {
                 console.log("Authenticated as 'anonymous'");
             } else { // if status is 'registered'
                 const spanEl = document.createElement("span");
+                // enable UI elements on start page
+                const linkEls = document.querySelectorAll("a.disabled");
+                for (const el of linkEls) {
+                    el.classList.remove("disabled");
+                }
                 if (!user.emailVerified) {
                     spanEl.textContent = `Check your email '${user.email}' for instructions to verify your account before using any operation `;
+                    const clearDataButtons =
+                        document.querySelectorAll(".clearData");
+                    for (const btn of clearDataButtons) {
+                        btn.disabled = true;
+                    }
                 } else {
                     spanEl.textContent = `${user.email} `;
+
+                    const clearDataButtons =
+                        document.querySelectorAll(".clearData");
+                    for (const btn of clearDataButtons) {
+                        btn.disabled = false;
+                    }
                 }
                 loginMngEls[1].prepend( spanEl);
                 loginMngEls[1].hidden = false; // show 'sign out'
+
                 // if current page is not allowed & email is verified
                 if (!allowedPages.includes( page) && !user.emailVerified) {
                     alert (`Check your email ${user.email} for instructions to verify your account before using this operation`);
@@ -47,11 +64,7 @@ function setupUiByUserStatus() {
                     for (const el of linkEls) {
                         el.classList.remove("disabled");
                     }
-                    const clearDataButtons =
-                        document.querySelectorAll(".clearData");
-                    for (const btn of clearDataButtons) {
-                        btn.disabled = false;
-                    }
+
                     // document.getElementsByClassName("clearData").disabled = false;
                     const generateDataButtons =
                         document.querySelectorAll(".generateTestData");
