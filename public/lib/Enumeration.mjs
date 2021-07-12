@@ -1,5 +1,3 @@
-import { ConstraintViolation } from "./errorTypes.mjs";
-
 /**
  * Predefined class for creating enumerations as special JS objects.
  * An enumeration can be specified in two ways: by a list of labels,
@@ -12,6 +10,9 @@ import { ConstraintViolation } from "./errorTypes.mjs";
  * @constructor
  * @param {array} enumArg  The labels of the new enumeration literals.
  */
+
+import { ConstraintViolation } from "./errorTypes.mjs";
+
 function Enumeration( enumArg) {
   if (Array.isArray( enumArg)) {
     // a simple enum defined by a list of labels
@@ -56,9 +57,7 @@ function Enumeration( enumArg) {
  * enumeration literal names (was "convertEnumIndexes2Names")
  */
 Enumeration.prototype.stringify = function (a) {
-  return a.map(function (enumInt) {
-    return this.enumLitNames[enumInt - 1];
-  }, this).join(", ");
+  return a.map( enumInt => this.enumLitNames[enumInt-1]).join(", ");
 }
 
 export default Enumeration;

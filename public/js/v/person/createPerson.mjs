@@ -3,19 +3,19 @@
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 import Person, { GenderEL, PersonTypeEL  } from "../../m/Person.mjs";
-import { createChoiceWidget } from "../../../lib/util.mjs";
+import { createChoiceWidget, showProgressBar } from "../../../lib/util.mjs";
 
+/***************************************************************
+ Declare variables for accessing UI elements
+ ***************************************************************/
 const formEl = document.forms['Person'],
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
     typeFieldsetEl = formEl.querySelector("fieldset[data-bind='type']"),
-    // selectAssoClubsEl = formEl.selectAssoClubs,
-    // selectAssoAssociationsEl = formEl.selectAssoAssociations,
-    // selectClubPlayerEl = formEl.selectClubPlayer,
-    // selectClubCoachEl = formEl.selectClubCoach,
-    // selectAssoEl = formEl.selectAssociation,
-    saveButton = formEl["commit"];
+    saveButton = formEl.commit;
 
-
+/***************************************************************
+ Set up (choice) widgets
+ ***************************************************************/
 // set up the gender radio button group
 createChoiceWidget( genderFieldsetEl, "gender", [],
     "radio", GenderEL.labels);
@@ -24,79 +24,38 @@ createChoiceWidget( genderFieldsetEl, "gender", [],
 createChoiceWidget( typeFieldsetEl, "type", [],
     "checkbox", PersonTypeEL.labels);
 
-// // load all football association records
-// const associationRecords = await FootballAssociation.retrieveAll();
-// // load all football club records
-// const clubRecords = await FootballClub.retrieveAll();
+/***************************************************************
+ Add event listeners for responsive validation
+ ***************************************************************/
+// add event listeners for responsive validation
+formEl.personId.addEventListener("input", function () {
+    formEl.personId.setCustomValidity( Person.checkPersonId( formEl.personId.value).message);
+});
+formEl.name.addEventListener("input", function () {
+    formEl.name.setCustomValidity( Person.checkName( formEl.name.value).message);
+});
+formEl.dateOfBirth.addEventListener("input", function () {
+    formEl.dateOfBirth.setCustomValidity( Person.checkDateOfBirth( formEl.dateOfBirth.value).message);
+});
+genderFieldsetEl.addEventListener("click", function () {
+    formEl.gender[0].setCustomValidity(
+        (!genderFieldsetEl.getAttribute("data-value")) ?
+            "A gender must be selected!":"" );
+});
+// mandatory value check
+typeFieldsetEl.addEventListener("click", function () {
+    const val = typeFieldsetEl.getAttribute("data-value");
+    formEl.type[0].setCustomValidity(
+        (!val || Array.isArray(val) && val.length === 0) ?
+            "At least one type must be selected!":"" );
+});
 
-// // set up a multiple selection list for selecting associated clubs
-// fillSelectWithOptions( selectAssoClubsEl, clubRecords,
-//     "clubId", {displayProp: "name"});
-// // set up a multiple selection list for selecting associated associations
-// fillSelectWithOptions( selectAssoAssociationsEl, FootballAssociation.instances,
-//     "assoId", {displayProp: "name"});
-
-//
-// for (const associationRec of associationRecords) {
-//     const optionEl = document.createElement("option");
-//     optionEl.text = associationRec.name;
-//     optionEl.value = associationRec.assoId;
-//
-//     selectAssoEl.add( optionEl, null);
-// }
-//
-// for (const clubRec of clubRecords) {
-//     const optionEl = document.createElement("option");
-//     optionEl.text = clubRec.name + " (" +
-//         GenderEL.enumLitNames[clubRec.gender - 1] + ")";
-//     optionEl.value = clubRec.clubId;
-//
-//     selectClubPlayerEl.add( optionEl, null);
-// }
-// for (const clubRec of clubRecords) {
-//     const optionEl = document.createElement("option");
-//     optionEl.text = clubRec.name + " (" +
-//         GenderEL.enumLitNames[clubRec.gender - 1] + ")";
-//     optionEl.value = clubRec.clubId;
-//
-//     selectClubCoachEl.add( optionEl, null);
-// }
-
-// undisplayAllSegmentFields( formEl, PersonTypeEL.labels);
-
-// typeFieldsetEl.addEventListener("change", handleTypeSelectChangeEvent);
-//
-// function handleTypeSelectChangeEvent(e) {
-//     const formEl = e.currentTarget.form,
-//         selected = formEl.getAttribute("data-value"),
-//         selectedValues = [];
-//     var checkboxes = document.getElementsByName("type");
-//
-//     // console.log(formEl.getAttribute("data-value"));
-//
-//     for(let i = 0; i < checkboxes.length; i++)
-//     {
-//         // if(checkboxes[i].checked) {
-//         if (checkboxes[i].checked) {
-//             selectedValues.push(i);
-//             }
-//
-//         }
-//     if (selectedValues.length > 0) {
-//         for (const v of selectedValues) {
-//             displaySegmentFields( formEl, PersonTypeEL.labels,
-//                 parseInt(v+1));
-//         }
-//     } else {
-//         undisplayAllSegmentFields( formEl, PersonTypeEL.labels);
-//     }
-//
-//
-// }
-
-
+/******************************************************************
+ Add further event listeners, especially for the save/submit button
+ ******************************************************************/
 // set an event handler for the submit/save button
 saveButton.addEventListener("click", handleSaveButtonClickEvent);
+
 // neutralize the submit event
 formEl.addEventListener( 'submit', function (e) {
     e.preventDefault();
@@ -113,12 +72,23 @@ async function handleSaveButtonClickEvent() {
         type : []
     };
 
-    if (typeof slots.gender === 'string') {
-        slots.gender = parseInt(slots.gender);
-    }
+    // if (typeof slots.gender === 'string') {
+    //     slots.gender = parseInt(slots.gender);
+    // }
 
     slots.type = JSON.parse(selectedTypesOptions);
 
-    await Person.add( slots);
-    formEl.reset();
+    showProgressBar( "show");
+    formEl.personId.setCustomValidity(( await Person.checkPersonIdAsId(slots.personId)).message);
+    formEl.name.setCustomValidity( Person.checkName( slots.name).message);
+    formEl.dateOfBirth.setCustomValidity( Person.checkDateOfBirth( slots.dateOfBirth).message);
+    formEl.gender[0].setCustomValidity( Person.checkGender( slots.gender).message);
+    formEl.type[0].setCustomValidity(
+        Person.checkTypes( slots.type).message);
+
+    if (formEl.checkValidity()) {
+        Person.add(slots);
+        formEl.reset();
+    }
+    showProgressBar( "hide");
 }

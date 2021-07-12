@@ -2,9 +2,6 @@
  * @fileOverview  Defining the main namespace ("public library") and its MVC subnamespaces
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
-'use strict';
-// main namespace pl = "public library"
-// const pl = {m:{}, v:{}, c:{}};
 
 // initialize Cloud Firestore through Firebase
 if (!firebase.apps.length) {
@@ -19,4 +16,6 @@ if (!firebase.apps.length) {
 // initialize Firestore database interface
 const db = firebase.firestore();
 // initialize Firebase user authentication interface
-var auth = firebase.auth();
+const auth = firebase.auth();
+
+export { db, auth };

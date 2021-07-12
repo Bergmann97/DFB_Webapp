@@ -12,13 +12,13 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
     <link rel="manifest" href="manifest.json"/>
 
-    <script src="./js/c/initialize.js"></script>
-    <script src="./js/v/authenticateUser.js"></script>
-
     <link rel="stylesheet" href="./css/normalize.css"/>
     <link rel="stylesheet" href="./css/main.css"/>
 
-    <script>
+    <script type="module">
+        import { auth } from "./js/c/initialize.mjs";
+        import { setupSignInAndSignUp } from "./js/v/authenticateUser.mjs";
+
         //evaluate user authentication status
         auth.onAuthStateChanged( function (user) {
             if (!user) { // if user status is unknown
@@ -26,7 +26,7 @@
                 auth.signInAnonymously();
             }
         });
-        window.addEventListener("load", setupSignInAndSignUp);
+        setupSignInAndSignUp();
     </script>
 
 </head>

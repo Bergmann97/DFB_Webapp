@@ -14,14 +14,12 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
   <link rel="manifest" href="../manifest.json"/>
 
-  <script src="../js/c/initialize.js"></script>
   <script src="../js/v/person/createPerson.mjs" type="module"></script>
-  <script src="../js/v/authenticateUser.js"></script>
 
-  <script>
-    window.addEventListener("load", function () {
-      setupUiByUserStatus();
-    });
+  <script type="module">
+    import { setupUiByUserStatus } from "../js/v/authenticateUser.mjs";
+
+    setupUiByUserStatus();
   </script>
 
   <link rel="stylesheet" href="../css/normalize.css"/>

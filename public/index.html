@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <title>DFB - Deutscher Fußball-Bund e.V.</title>
     <meta name="description" content="DFB - Deutscher Fußball-Bund e.V.">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#ffffff"/>
+
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-auth.js"></script>
@@ -12,34 +15,26 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
     <link rel="manifest" href="manifest.json"/>
 
-    <script src="./js/c/initialize.js"></script>
-    <script src="./js/v/authenticateUser.js"></script>
-
     <link rel="stylesheet" href="./css/normalize.css"/>
     <link rel="stylesheet" href="./css/main.css"/>
 
-    <script>
-        window.addEventListener("load", function () {
-            setupUiByUserStatus();
-        });
-    </script>
-
     <script type="module">
+        import { setupUiByUserStatus } from "./js/v/authenticateUser.mjs";
         import Person from "./js/m/Person.mjs";
 
-        window.addEventListener("load", function() {
-            const clearButtonPerson = document.getElementById("clearDataPerson"),
-                generateTestDataButtonsPerson = document.getElementById("generateTestDataPerson");
-            // Set event handlers for the buttons "clearData" and "generateTestData"
-            clearButtonPerson.addEventListener("click", Person.clearData);
-            generateTestDataButtonsPerson.addEventListener("click", Person.generateTestData);
-        });
+        setupUiByUserStatus();
+
+        const clearButtonPerson = document.getElementById("clearDataPerson"),
+            generateTestDataButtonsPerson = document.getElementById("generateTestDataPerson");
+        // Set event handlers for the buttons "clearData" and "generateTestData"
+        clearButtonPerson.addEventListener("click", Person.clearData);
+        generateTestDataButtonsPerson.addEventListener("click", Person.generateTestData);
     </script>
 </head>
 <body>
 <header>
     <div id="login-management">
-        <small hidden="hidden"><a href="authenticateUser.html">Sign in or Sign up</a> for using the disabled operations</small>
+        <small hidden="hidden"><a href="./authenticateUser.html">Sign in or Sign up</a> for using the disabled operations</small>
         <small hidden="hidden"><button type="button" id="signOut">Sign out</button></small>
     </div>
     <div class="wrapper clearfix">

@@ -88,30 +88,26 @@ function createOption( val, txt, classValues) {
  * @param {object} optPar [optional]  A record of optional parameter slots
  *                 including optPar.displayProp and optPar.selection
  */
-function fillSelectWithOptions( selectEl, selectionRange, keyProp, optPar) {
-  var optionEl=null, displayProp="";
+function fillSelectWithOptions( selectEl, selectionRange, optPar) {
+  // create option elements from array key and values
+  const options = selectionRange.entries();
   // delete old contents
   selectEl.innerHTML = "";
   // create "no selection yet" entry
-  if (!selectEl.multiple) selectEl.add( createOption(""," --- "));
-  // create option elements from object property values
-  var options = Array.isArray( selectionRange) ? selectionRange : Object.keys( selectionRange);
-  for (let i=0; i < options.length; i++) {
-    if (Array.isArray( selectionRange)) {
-      optionEl = createOption( i, options[i]);
-    } else {
-      const key = options[i];
-      const obj = selectionRange[key];
-      if (!selectEl.multiple) obj.index = i+1;  // store selection list index
-      if (optPar && optPar.displayProp) displayProp = optPar.displayProp;
-      else displayProp = keyProp;
-      optionEl = createOption( key, obj[displayProp]);
-      // if invoked with a selection argument, flag the selected options
-      if (selectEl.multiple && optPar && optPar.selection &&
-          optPar.selection[keyProp]) {
-        // flag the option element with this value as selected
-        optionEl.selected = true;
-      }
+  if (!selectEl.multiple) {
+    selectEl.add( createOption(""," --- "));
+  }
+  //
+  for (const [index, o] of options) {
+    const key = index + 1;
+    const optionEl = createOption(
+        optPar ? (o[optPar.valueProp] ? o[optPar.valueProp] : key) : key,
+        optPar ? (o[optPar.displayProp] ? o[optPar.displayProp] : o) : o
+    );
+    if (selectEl.multiple && optPar && optPar.selection &&
+        optPar.selection.includes(key)) {
+      // flag the option element with this value as selected
+      optionEl.selected = true;
     }
     selectEl.add( optionEl);
   }
@@ -215,6 +211,16 @@ function displaySegmentFields( domNode, segmentNames, segmentIndex) {
   }
 }
 
+/**
+ * Show or hide progress bar element
+ * @param {string} status
+ */
+function showProgressBar (status) {
+  let progressEl = document.querySelector( 'progress');
+  if (status === "show") progressEl.hidden = false;
+  if (status === "hide") progressEl.hidden = true;
+}
+
 export { isNonEmptyString, isIntegerOrIntegerString, cloneObject, createOption,
   fillSelectWithOptions, createChoiceWidget, createIsoDateString, undisplayAllSegmentFields,
-  displaySegmentFields};
+  displaySegmentFields, showProgressBar};

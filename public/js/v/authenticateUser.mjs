@@ -2,6 +2,11 @@
  * @fileOverview  View methods for the user authentication
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
+import { auth } from "../c/initialize.mjs";
+
 /**
  * set user authentication status
  */
@@ -42,6 +47,11 @@ function setupUiByUserStatus() {
                     for (const btn of clearDataButtons) {
                         btn.disabled = true;
                     }
+                    const generateDataButtons =
+                        document.querySelectorAll(".generateTestData");
+                    for (const btn of generateDataButtons) {
+                        btn.disabled = true;
+                    }
                 } else {
                     spanEl.textContent = `${user.email} `;
 
@@ -56,6 +66,7 @@ function setupUiByUserStatus() {
 
                 // if current page is not allowed & email is verified
                 if (!allowedPages.includes( page) && !user.emailVerified) {
+                    // document.getElementsByClassName("generateTestData").disabled = true;
                     alert (`Check your email ${user.email} for instructions to verify your account before using this operation`);
                     window.location.pathname = "/index.html";
                 } else if (page === "/" || page === "/index.html") {
@@ -71,6 +82,7 @@ function setupUiByUserStatus() {
                     for (const btn of generateDataButtons) {
                         btn.disabled = false;
                     }
+                    // document.getElementsByClassName("generateTestData").disabled = false;
                 }
                 // set and event handler for 'sign out' button
                 const signOutButton = loginMngEls[1].querySelector("button");
@@ -193,3 +205,6 @@ function handleSignOut() {
         console.error( e.message);
     }
 }
+
+export { setupUiByUserStatus, setupSignInAndSignUp, handleVerifyEmail };
+
