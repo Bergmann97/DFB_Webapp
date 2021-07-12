@@ -42,31 +42,19 @@ function setupUiByUserStatus() {
                 }
                 if (!user.emailVerified) {
                     spanEl.textContent = `Check your email '${user.email}' for instructions to verify your account before using any operation `;
-                    const clearDataButtons =
-                        document.querySelectorAll(".clearData");
-                    for (const btn of clearDataButtons) {
-                        btn.disabled = true;
-                    }
-                    const generateDataButtons =
-                        document.querySelectorAll(".generateTestData");
-                    for (const btn of generateDataButtons) {
-                        btn.disabled = true;
-                    }
+                    document.getElementById("clearDataPerson").disabled = true;
+                    document.getElementById("generateTestDataPerson").disabled = true;
                 } else {
                     spanEl.textContent = `${user.email} `;
 
-                    const clearDataButtons =
-                        document.querySelectorAll(".clearData");
-                    for (const btn of clearDataButtons) {
-                        btn.disabled = false;
-                    }
+                    document.getElementById("clearDataPerson").disabled = false;
+                    document.getElementById("generateTestDataPerson").disabled = false;
                 }
                 loginMngEls[1].prepend( spanEl);
                 loginMngEls[1].hidden = false; // show 'sign out'
 
                 // if current page is not allowed & email is verified
                 if (!allowedPages.includes( page) && !user.emailVerified) {
-                    // document.getElementsByClassName("generateTestData").disabled = true;
                     alert (`Check your email ${user.email} for instructions to verify your account before using this operation`);
                     window.location.pathname = "/index.html";
                 } else if (page === "/" || page === "/index.html") {
@@ -75,14 +63,6 @@ function setupUiByUserStatus() {
                     for (const el of linkEls) {
                         el.classList.remove("disabled");
                     }
-
-                    // document.getElementsByClassName("clearData").disabled = false;
-                    const generateDataButtons =
-                        document.querySelectorAll(".generateTestData");
-                    for (const btn of generateDataButtons) {
-                        btn.disabled = false;
-                    }
-                    // document.getElementsByClassName("generateTestData").disabled = false;
                 }
                 // set and event handler for 'sign out' button
                 const signOutButton = loginMngEls[1].querySelector("button");
