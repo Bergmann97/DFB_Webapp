@@ -44,12 +44,12 @@ function setupUiByUserStatus() {
                 if (!user.emailVerified) {
                     spanEl.textContent = `Check your email '${user.email}' for instructions to verify your account before using any operation `;
                     const clearDataButtons =
-                        document.querySelectorAll(".clearData");
+                        document.querySelectorAll("button.clearData");
                     for (const btn of clearDataButtons) {
                         btn.disabled = true;
                     }
                     const generateTestDataButtons =
-                        document.querySelectorAll(".generateTestData");
+                        document.querySelectorAll("button.generateTestData");
                     for (const btn of generateTestDataButtons) {
                         btn.disabled = true;
                     }
@@ -60,12 +60,12 @@ function setupUiByUserStatus() {
                     spanEl.textContent = `${user.email} `;
 
                     const clearDataButtons =
-                        document.querySelectorAll(".clearData");
+                        document.querySelectorAll("button.clearData");
                     for (const btn of clearDataButtons) {
                         btn.disabled = false;
                     }
                     const generateTestDataButtons =
-                        document.querySelectorAll(".generateTestData");
+                        document.querySelectorAll("button.generateTestData");
                     for (const btn of generateTestDataButtons) {
                         btn.disabled = false;
                     }
@@ -73,6 +73,7 @@ function setupUiByUserStatus() {
                     // document.getElementById("clearDataPerson").disabled = false;
                     // document.getElementById("generateTestDataPerson").disabled = false;
                 }
+
                 loginMngEls[1].prepend( spanEl);
                 loginMngEls[1].hidden = false; // show 'sign out'
 
