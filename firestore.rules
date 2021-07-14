@@ -50,7 +50,7 @@ service cloud.firestore {
         match /{persons}/{document=**} {
             /** RULES FOR allow read WITH CONVENIENCE METHOD - LOW GRANULARITY **/
             /** NO authentication required **/
-            allow read: if request.auth != null;
+//            allow read: if request.auth != null;
 
             /** RULES FOR allow write WITH STANDARD METHODS - HIGH GRANULARITY **/
             /** authentication required **/
@@ -79,7 +79,7 @@ service cloud.firestore {
         match /{clubs}/{document=**} {
             /** RULES FOR allow read WITH CONVENIENCE METHOD - LOW GRANULARITY **/
             /** NO authentication required **/
-            allow read: if request.auth != null;
+//            allow read: if request.auth != null;
 
             /** RULES FOR allow write WITH STANDARD METHODS - HIGH GRANULARITY **/
             /** authentication required **/
@@ -104,7 +104,7 @@ service cloud.firestore {
         match /{associations}/{document=**} {
             /** RULES FOR allow read WITH CONVENIENCE METHOD - LOW GRANULARITY **/
             /** NO authentication required **/
-            allow read: if request.auth != null;
+//            allow read: if request.auth != null;
 
             /** RULES FOR allow write WITH STANDARD METHODS - HIGH GRANULARITY **/
             /** authentication required **/
