@@ -230,23 +230,9 @@ FootballAssociation.destroy = async function (assoId) {
 // Create test data
 FootballAssociation.generateTestData = async function () {
     try {
-        let assoRecords = [
-            {
-                assoId: "1",
-                name: "NORDDEUTSCHER FUSSBALL-VERBAND"
-            },
-            {
-                assoId: "2",
-                name: "Schleswig-Holsteinischer Fußballverband"
-            },
-            {
-                assoId: "3",
-                name: "Hamburger Fußball-Verband"
-            },
-        ];
         console.log('Generating test data...');
-        // const response = await fetch( "../../test-data/persons.json");
-        // const personRecords = await response.json();
+        const response = await fetch( "../../test-data/associations.json");
+        const assoRecords = await response.json();
         await Promise.all( assoRecords.map( d => FootballAssociation.add( d)));
 
         console.log(`${assoRecords.length} football associations saved.`);

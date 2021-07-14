@@ -16,6 +16,7 @@ import {
 }
     from "../../lib/errorTypes.mjs";
 import {GenderEL} from "./Person.mjs";
+import FootballAssociation from "./FootballAssociation.mjs";
 
 /**
  * Constructor function for the class FootballClub
@@ -264,39 +265,9 @@ FootballClub.destroy = async function (clubId) {
 // Create test data
 FootballClub.generateTestData = async function () {
     try {
-        let clubRecords = [
-            {
-                clubId: "1",
-                name: "Arsenal FC",
-                gender: GenderEL.M
-            },
-            {
-                clubId: "2",
-                name: "Bayern Munich",
-                gender: GenderEL.M
-            },
-            {
-                clubId: "3",
-                name: "Eintracht Frankfurt",
-                gender: GenderEL.M
-            },
-            {
-                clubId: "4",
-                name: "Bayern Munich",
-                gender: GenderEL.F
-            },
-            {
-                clubId: "5",
-                name: "Eintracht Frankfurt",
-                gender: GenderEL.F
-            },
-            {
-                clubId: "6",
-                name: "SGS Essen",
-                gender: GenderEL.F
-            }
-        ];
         console.log('Generating test data...');
+        const response = await fetch( "../../test-data/clubs.json");
+        const clubRecords = await response.json();
         await Promise.all( clubRecords.map( d => FootballClub.add( d)));
 
         console.log(`${clubRecords.length} football clubs saved.`);
