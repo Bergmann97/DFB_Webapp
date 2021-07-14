@@ -35,7 +35,7 @@ service cloud.firestore {
         function checkAssoId( assoId) {
             return (assoId is int || !("assoId" in request.resource.data));
         }
-        // check if exist document with same Club ID
+        // check if exist document with same Association ID
         function checkAssoIdAsId( clubId) {
             return !(exists(/databases/$(database)/documents/associations/$(assoId)));
         }
@@ -43,7 +43,11 @@ service cloud.firestore {
         /** VALIDATION RULES **/
 
         match /{document=**} {
+            /** RULES FOR allow read WITH CONVENIENCE METHOD - LOW GRANULARITY **/
+            /** NO authentication required **/
             allow read: if request.auth != null;
+            /** RULES FOR allow write WITH STANDARD METHODS - HIGH GRANULARITY **/
+            /** authentication required **/
             allow write: if request.auth.token.email_verified == true;
         }
         // Person
@@ -117,7 +121,7 @@ service cloud.firestore {
             // validate when update football association record
             allow update: if request.auth.token.email_verified == true
                              && (request.resource.data.diff( resource.data).affectedKeys()
-                                 .hasOnly(['gender']));
+                                 .hasOnly(['name']));
 
             // validate when delete football association record
             allow delete: if request.auth.token.email_verified == true;
