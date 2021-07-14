@@ -221,6 +221,63 @@ function showProgressBar (status) {
   if (status === "hide") progressEl.hidden = true;
 }
 
+/**
+ * Handle user messages
+ * @param {string} status
+ * @param {string} data
+ */
+function handleUserMessage (status, data) {
+  const userMessageContainerEl = document.querySelector(".user-message"),
+      errorMessage = userMessageContainerEl.querySelector("div"),
+      buttonEl = document.createElement("button");
+  let msgText = `The selected book ${JSON.stringify(data)} has been ${status}.
+\nPlease reload this page to continue `;
+  // display user message
+  userMessageContainerEl.innerHTML = "";
+  errorMessage.textContent = msgText;
+  buttonEl.setAttribute("type", "button");
+  buttonEl.textContent = "Reload";
+  errorMessage.appendChild( buttonEl);
+  userMessageContainerEl.appendChild( errorMessage);
+  userMessageContainerEl.hidden = false;
+  // add listener to reload button
+  buttonEl.addEventListener( "click", function () {
+    location.reload();
+  })
+}
+
+/**
+ * Fill a list element with items from an entity table
+ *
+ * @param {object} listEl  A list element
+ * @param {object} eTbl  An entity table
+ * @param {string} displayProp  The object property to be displayed in the list
+ */
+function fillListFromMapOld( listEl, eTbl, displayProp) {
+  const keys = Object.keys( eTbl);
+  // delete old contents
+  listEl.innerHTML = "";
+  // create list items from object property values
+  for (const key of keys) {
+    const listItemEl = document.createElement("li");
+    listItemEl.textContent = eTbl[key][displayProp];
+    listEl.appendChild( listItemEl);
+  }
+}
+
+/**
+ * Create a list element from an map of objects
+ *
+ * @param {object} eTbl  An entity table
+ * @param {string} displayProp  The object property to be displayed in the list
+ * @return {object}
+ */
+function createListFromMap( eTbl, displayProp) {
+  const listEl = document.createElement("ul");
+  fillListFromMapOld( listEl, eTbl, displayProp);
+  return listEl;
+}
+
 export { isNonEmptyString, isIntegerOrIntegerString, cloneObject, createOption,
   fillSelectWithOptions, createChoiceWidget, createIsoDateString, undisplayAllSegmentFields,
-  displaySegmentFields, showProgressBar};
+  displaySegmentFields, showProgressBar, handleUserMessage, createListFromMap};

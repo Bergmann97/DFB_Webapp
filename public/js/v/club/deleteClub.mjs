@@ -1,42 +1,42 @@
 /**
- * @fileOverview  Contains various view functions for the use case deletePerson
+ * @fileOverview  Contains various view functions for the use case "delete football club"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 /***************************************************************
  Import classes, datatypes and utility procedures
  ***************************************************************/
-import Person from "../../m/Person.mjs";
+import FootballClub from "../../m/FootballClub.mjs";
 import { fillSelectWithOptions } from "../../../lib/util.mjs";
 
 /***************************************************************
  Load data
  ***************************************************************/
-const personRecords = await Person.retrieveAll();
+const clubRecords = await FootballClub.retrieveAll();
 
 /***************************************************************
  Declare variables for accessing UI elements
  ***************************************************************/
-const formEl = document.forms["Person"],
+const formEl = document.forms["Club"],
     deleteButton = formEl["commit"],
-    selectPersonEl = formEl["selectPerson"];
+    selectClubEl = formEl["selectClub"];
 
 /***************************************************************
  Set up (choice) widgets
  ***************************************************************/
-// set up the person selection list
-fillSelectWithOptions( selectPersonEl, personRecords,
-    {valueProp:"personId", displayProp:"name"});
+// set up the football club selection list
+fillSelectWithOptions( selectClubEl, clubRecords,
+    {valueProp:"clubId", displayProp:"name"});
 
 /******************************************************************
  Add further event listeners, especially for the save/delete button
  ******************************************************************/
 // Set an event handler for the delete button
 deleteButton.addEventListener("click", async function () {
-    const personId = selectPersonEl.value;
-    if (!personId) return;
-    if (confirm("Do you really want to delete this person record?")) {
-        Person.destroy(personId);
-        // remove deleted person from select options
-        selectPersonEl.remove(selectPersonEl.selectedIndex);
+    const clubId = selectClubEl.value;
+    if (!clubId) return;
+    if (confirm("Do you really want to delete this football club record?")) {
+        FootballClub.destroy(clubId);
+        // remove deleted football club from select options
+        selectClubEl.remove(selectClubEl.selectedIndex);
     }
 });

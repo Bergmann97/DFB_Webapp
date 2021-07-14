@@ -23,7 +23,7 @@ import Enumeration from "../../lib/Enumeration.mjs";
  * Define two Enumerations
  */
 const PersonTypeEL = new Enumeration(["Member", "Player", "Coach", "President"]);
-const GenderEL = new Enumeration({"M":"Male", "F":"Female", "U":"Undetermined"});
+const GenderEL = new Enumeration({"M":"Male", "F":"Female"});
 
 /**
  * Constructor function for the class Person

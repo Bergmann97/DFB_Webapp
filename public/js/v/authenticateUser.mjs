@@ -15,7 +15,8 @@ function setupUiByUserStatus() {
     // set initial values and login management elements
     const page = window.location.pathname,
         allowedPages = ["/","/index.html",
-            "/authenticateUser.html","/person/retrieveAndListAllPersons.html"],
+            "/authenticateUser.html","/person/retrieveAndListAllPersons.html",
+            "/association/retrieveAndListAllAssociations.html", "/club/retrieveAndListAllClubs.html"],
         loginMngEls = document.querySelectorAll("header > div#login-management > small");
 
     // reset (hide) all login management elements: [0]sign in/up , [1]sign out
@@ -42,13 +43,35 @@ function setupUiByUserStatus() {
                 }
                 if (!user.emailVerified) {
                     spanEl.textContent = `Check your email '${user.email}' for instructions to verify your account before using any operation `;
-                    document.getElementById("clearDataPerson").disabled = true;
-                    document.getElementById("generateTestDataPerson").disabled = true;
+                    const clearDataButtons =
+                        document.querySelectorAll(".clearData");
+                    for (const btn of clearDataButtons) {
+                        btn.disabled = true;
+                    }
+                    const generateTestDataButtons =
+                        document.querySelectorAll(".generateTestData");
+                    for (const btn of generateTestDataButtons) {
+                        btn.disabled = true;
+                    }
+
+                    // document.getElementById("clearDataPerson").disabled = true;
+                    // document.getElementById("generateTestDataPerson").disabled = true;
                 } else {
                     spanEl.textContent = `${user.email} `;
 
-                    document.getElementById("clearDataPerson").disabled = false;
-                    document.getElementById("generateTestDataPerson").disabled = false;
+                    const clearDataButtons =
+                        document.querySelectorAll(".clearData");
+                    for (const btn of clearDataButtons) {
+                        btn.disabled = false;
+                    }
+                    const generateTestDataButtons =
+                        document.querySelectorAll(".generateTestData");
+                    for (const btn of generateTestDataButtons) {
+                        btn.disabled = false;
+                    }
+
+                    // document.getElementById("clearDataPerson").disabled = false;
+                    // document.getElementById("generateTestDataPerson").disabled = false;
                 }
                 loginMngEls[1].prepend( spanEl);
                 loginMngEls[1].hidden = false; // show 'sign out'

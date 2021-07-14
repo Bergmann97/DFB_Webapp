@@ -15,7 +15,7 @@ const tableBodyEl = document.querySelector("table#persons > tbody");
 /***************************************************************
  Create table view
  ***************************************************************/
-// invoke list ordered by isbn (default)
+// invoke list ordered by personId (default)
 await renderList( "personId");
 
 /***************************************************************
@@ -50,10 +50,6 @@ async function renderList( order) {
 
 export async function setupUserInterface() {
     const tableBodyEl = document.querySelector("table#persons>tbody");
-
-    // fillSelectWithOptions(selectTypeEl, PersonTypeEL.labels);
-
-    // document.getElementById("association").remove();
     // load a list of all person records from Firestore
     const personRecords = await Person.retrieveAll();
     // for each person, create a table row with a cell for each attribute
@@ -65,29 +61,5 @@ export async function setupUserInterface() {
 
         row.insertCell().textContent = GenderEL.enumLitNames[personRec.gender - 1];
         row.insertCell().textContent = PersonTypeEL.stringify(personRec.type);
-        // console.log("personRec:" + personRec +  "/" + personRec.type + typeof personRec.type);
     }
-
-    // selectTypeEl.addEventListener("change", async function () {
-    //     let type = selectTypeEl.value;
-    //
-    //     if (typeof type === 'string') {
-    //         type = parseInt(type);
-    //     }
-    //     console.log("type: " + type + "/type: " + typeof type);
-    //     if (type+1 === PersonTypeEL.MEMBER) {
-    //         console.log("MEMBER");
-    //         document.getElementById("type").remove();
-    //     } else if (type+1 === PersonTypeEL.PLAYER) {
-    //         console.log("PLAYER");
-    //     } else if (type+1 === PersonTypeEL.COACH) {
-    //         console.log("COACH");
-    //     } else if (type+1 === PersonTypeEL.PRESIDENT) {
-    //         console.log("PRESIDENT");
-    //     } else {
-    //         console.log("ALL");
-    //     }
-    //
-    // });
-
   }

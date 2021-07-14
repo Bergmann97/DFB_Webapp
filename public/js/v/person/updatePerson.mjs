@@ -74,9 +74,10 @@ genderFieldsetEl.addEventListener("click", function () {
         (!genderFieldsetEl.getAttribute("data-value")) ? "A gender must be selected!":"" );
 });
 typeFieldsetEl.addEventListener("click", function () {
+    const val = typeFieldsetEl.getAttribute("data-value");
     formEl.type[0].setCustomValidity(
-        (!typeFieldsetEl.getAttribute("data-value")) ?
-            "A type must be selected!":"" );
+        (!val || Array.isArray(val) && val.length === 0) ?
+            "At least one type form must be selected!":"" );
 });
 
 /******************************************************************
@@ -101,7 +102,9 @@ async function handleSubmitButtonClickEvent() {
     const formEl = document.forms["Person"],
         selectPersonEl = formEl.selectPerson,
         personId = selectPersonEl.value;
+
     if (!personId) return;
+
     const slots = {
         personId: formEl.personId.value,
         name: formEl.name.value,

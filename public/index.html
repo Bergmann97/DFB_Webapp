@@ -21,14 +21,36 @@
     <script type="module">
         import { setupUiByUserStatus } from "./js/v/authenticateUser.mjs";
         import Person from "./js/m/Person.mjs";
+        import FootballClub from "./js/m/FootballClub.mjs";
+        import FootballAssociation from "./js/m/FootballAssociation.mjs";
+        import NationalTeam from "./js/m/NationalTeam.mjs";
 
         setupUiByUserStatus();
 
         const clearButtonPerson = document.getElementById("clearDataPerson"),
-            generateTestDataButtonsPerson = document.getElementById("generateTestDataPerson");
+            generateTestDataButtonPerson = document.getElementById("generateTestDataPerson");
         // Set event handlers for the buttons "clearData" and "generateTestData"
         clearButtonPerson.addEventListener("click", Person.clearData);
-        generateTestDataButtonsPerson.addEventListener("click", Person.generateTestData);
+        generateTestDataButtonPerson.addEventListener("click", Person.generateTestData);
+
+        const clearButtonClub = document.getElementById("clearDataClub"),
+            generateTestDataButtonClub = document.getElementById("generateTestDataClub");
+        // Set event handlers for the buttons "clearData" and "generateTestData"
+        clearButtonClub.addEventListener("click", FootballClub.clearData);
+        generateTestDataButtonClub.addEventListener("click", FootballClub.generateTestData);
+
+        const clearButtonAsso = document.getElementById("clearDataAsso"),
+            generateTestDataButtonAsso = document.getElementById("generateTestDataAsso");
+        // Set event handlers for the buttons "clearData" and "generateTestData"
+        clearButtonAsso.addEventListener("click", FootballAssociation.clearData);
+        generateTestDataButtonAsso.addEventListener("click", FootballAssociation.generateTestData);
+
+        // const clearButtonTeam = document.getElementById("clearDataTeam"),
+        //     generateTestDataButtonTeam = document.getElementById("generateTestDataTeam");
+        // // Set event handlers for the buttons "clearData" and "generateTestData"
+        // clearButtonTeam.addEventListener("click", NationalTeam.clearData);
+        // generateTestDataButtonTeam.addEventListener("click", NationalTeam.generateTestData);
+
     </script>
 </head>
 <body>
@@ -53,6 +75,32 @@
                 <a href="./person/deletePerson.html" class="disabled">Delete</a>
             </div>
         </div>
+        <div class="dropdown">
+            <button class="dropbtn">Club</button>
+            <div class="dropdown-content">
+                <a href="./club/createClub.html" class="disabled">Create</a>
+                <a href="./club/retrieveAndListAllClubs.html">List</a>
+                <a href="./club/updateClub.html" class="disabled">Update</a>
+                <a href="./club/deleteClub.html" class="disabled">Delete</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Association</button>
+            <div class="dropdown-content">
+                <a href="./association/createAssociation.html" class="disabled">Create</a>
+                <a href="./association/retrieveAndListAllAssociations.html">List</a>
+                <a href="./association/updateAssociation.html" class="disabled">Update</a>
+                <a href="./association/deleteAssociation.html" class="disabled">Delete</a>
+            </div>
+        </div>
+<!--        <div class="dropdown">-->
+<!--            <button class="dropbtn">National Team</button>-->
+<!--            <div class="dropdown-content">-->
+<!--                <a href="./nationalTeam/createNationalTeam.html" class="disabled">Create</a>-->
+<!--                <a href="./nationalTeam/retrieveAndListAllNationalTeams.html">List</a>-->
+<!--                <a href="./nationalTeam/updateNationalTeam.html" class="disabled">Update</a>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </header>
 <main>
@@ -74,12 +122,32 @@
                 that represents if he is a president, coach, player and/or member, and additional
                 an association to the football club or football association.</p>
         </div>
-        <ul class="menu">
-            <li><button type="button" id="generateTestDataPerson"
-                        class="generateTestData" disabled="disabled">[Person] Generate test data</button></li>
-            <li><button type="button" id="clearDataPerson"
-                        class="clearData" disabled="disabled">[Person] Clear database</button></li>
-        </ul>
+        <div class="two-col-menu">
+            <ul class="menu">
+                <li><button type="button" id="generateTestDataPerson"
+                            class="generateTestData" disabled="disabled">[Person] Generate test data</button></li>
+                <li><button type="button" id="clearDataPerson"
+                            class="clearData" disabled="disabled">[Person] Clear database</button></li>
+            </ul>
+            <ul class="menu">
+                <li><button type="button" id="generateTestDataClub"
+                            class="generateTestData" disabled="disabled">[Club] Generate test data</button></li>
+                <li><button type="button" id="clearDataClub"
+                            class="clearData" disabled="disabled">[Club] Clear database</button></li>
+            </ul>
+            <ul class="menu">
+                <li><button type="button" id="generateTestDataAsso"
+                            class="generateTestData" disabled="disabled">[Association] Generate test data</button></li>
+                <li><button type="button" id="clearDataAsso"
+                            class="clearData" disabled="disabled">[Association] Clear database</button></li>
+            </ul>
+<!--            <ul class="menu">-->
+<!--                <li><button type="button" id="generateTestDataTeam"-->
+<!--                            class="generateTestData" disabled="disabled">[National Team] Generate test data</button></li>-->
+<!--                <li><button type="button" id="clearDataTeam"-->
+<!--                            class="clearData" disabled="disabled">[National Team] Clear database</button></li>-->
+<!--            </ul>-->
+        </div>
     </div>
 </main>
 <footer class="Footer">

@@ -1,42 +1,42 @@
 /**
- * @fileOverview  Contains various view functions for the use case deletePerson
+ * @fileOverview  Contains various view functions for the use case "delete football association"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 /***************************************************************
  Import classes, datatypes and utility procedures
  ***************************************************************/
-import Person from "../../m/Person.mjs";
+import FootballAssociation from "../../m/FootballAssociation.mjs";
 import { fillSelectWithOptions } from "../../../lib/util.mjs";
 
 /***************************************************************
  Load data
  ***************************************************************/
-const personRecords = await Person.retrieveAll();
+const assoRecords = await FootballAssociation.retrieveAll();
 
 /***************************************************************
  Declare variables for accessing UI elements
  ***************************************************************/
-const formEl = document.forms["Person"],
+const formEl = document.forms["Association"],
     deleteButton = formEl["commit"],
-    selectPersonEl = formEl["selectPerson"];
+    selectAssoEl = formEl["selectAssociation"];
 
 /***************************************************************
  Set up (choice) widgets
  ***************************************************************/
-// set up the person selection list
-fillSelectWithOptions( selectPersonEl, personRecords,
-    {valueProp:"personId", displayProp:"name"});
+// set up the football association selection list
+fillSelectWithOptions( selectAssoEl, assoRecords,
+    {valueProp:"assoId", displayProp:"name"});
 
 /******************************************************************
  Add further event listeners, especially for the save/delete button
  ******************************************************************/
 // Set an event handler for the delete button
 deleteButton.addEventListener("click", async function () {
-    const personId = selectPersonEl.value;
-    if (!personId) return;
-    if (confirm("Do you really want to delete this person record?")) {
-        Person.destroy(personId);
-        // remove deleted person from select options
-        selectPersonEl.remove(selectPersonEl.selectedIndex);
+    const assoId = selectAssoEl.value;
+    if (!assoId) return;
+    if (confirm("Do you really want to delete this football association record?")) {
+        FootballAssociation.destroy(assoId);
+        // remove deleted football association from select options
+        selectAssoEl.remove(selectAssoEl.selectedIndex);
     }
 });
