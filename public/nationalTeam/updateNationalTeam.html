@@ -83,22 +83,26 @@
                     </select>
                 </label>
             </div>
-            <div style="display:none">
-                <label>Team ID:
-                    <output name="teamId"/>
-                </label>
-            </div>
+            <!--            <div>-->
+            <!--                <label>Team ID:-->
+            <!--                    <output name="teamId"/>-->
+            <!--                </label>-->
+            <!--            </div>-->
             <fieldset data-bind="gender">
                 <legend>Gender</legend>
             </fieldset>
 
-            <!--            <div>-->
-            <!--                <label>Coach:-->
-            <!--                    <select name="selectCoach">-->
-            <!--                        <option value=""> -&#45;&#45;</option>-->
-            <!--                    </select>-->
-            <!--                </label>-->
-            <!--            </div>-->
+            <div>
+                <label>Coach:
+                    <select name="selectCoach">
+                        <option value=""> ---</option>
+                    </select>
+                </label>
+            </div>
+            <div class="widget">
+                <label for="upPlayers">Players: <span></span></label>
+                <div id="upPlayers" class="MultiSelectionWidget"></div>
+            </div>
             <!--            <div class="widget" id="players">-->
             <!--                <label>Players:</label>-->
             <!--                <div class="MultiChoiceWidget"></div>-->

@@ -1,5 +1,5 @@
 /**
- * @fileOverview  Contains various view functions for the use case "list national teams"
+ * @fileOverview  Contains various view functions for the use case listNationalTeams
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 
@@ -7,15 +7,19 @@
  Import classes, datatypes and utility procedures
  ***************************************************************/
 import NationalTeam from "../../m/NationalTeam.mjs";
-import {GenderEL} from "../../m/Person.mjs";
+import Person, {GenderEL, PersonTypeEL} from "../../m/Person.mjs";
 import {
+    createChoiceWidget, createIsoDateString, createListFromMap, fillSelectWithOptions,
     showProgressBar
 } from "../../../lib/util.mjs";
+import FootballAssociation from "../../m/FootballAssociation.mjs";
+import Coach from "../../m/Coach.mjs";
+import Player from "../../m/Player.mjs";
 
 /**********************************************************************
  Declare variables for accessing UI elements
  **********************************************************************/
-// const selectOrderEl = document.querySelector("main > div > div > label > select");
+const selectOrderEl = document.querySelector("main > div > div > label > select");
 const tableBodyEl = document.querySelector("table#teams > tbody");
 
 /***************************************************************
@@ -36,9 +40,22 @@ async function renderList() {
         let row = tableBodyEl.insertRow();
         // row.insertCell().textContent = team.teamId;
         row.insertCell().textContent = GenderEL.labels[team.gender - 1];
-        // row.insertCell().textContent = club.coach;
-        // row.insertCell().textContent = club.players;
+        row.insertCell().textContent = team.coach ?
+            await Coach.retrieve(String(team.coach)).then(value => value.name) : "";
+        // row.insertCell().textContent = team.players;
+        if (team.players) {
+            if (team.players.length > 0) {
+                // console.log("IF memberRec.assoAssociations");
+                const playersName = [];
+                for (const p of team.players) {
+                    playersName.push(await Player.retrieve(String(p)).then(value => value.name));
+                }
+                row.insertCell().innerHTML = '<ul><li>' + playersName.join("</li><li>"); + '</li></ul>';
 
+            } else {
+                row.insertCell().textContent = "";
+            }
+        }
     }
     showProgressBar( "hide");
 }

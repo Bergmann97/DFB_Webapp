@@ -25,6 +25,9 @@
 
   <link rel="stylesheet" href="../css/normalize.css"/>
   <link rel="stylesheet" href="../css/main.css"/>
+  <!--  <script>-->
+  <!--    window.addEventListener("load", pl.v.updateBook.setupUserInterface);-->
+  <!--  </script>-->
 </head>
 <body>
 <header>
@@ -51,29 +54,29 @@
     <div class="dropdown">
       <button class="dropbtn">Club</button>
       <div class="dropdown-content">
-        <a href="../club/createClub.html" class="disabled">Create</a>
+        <a href="../club/createClub.html">Create</a>
         <a href="../club/retrieveAndListAllClubs.html">List</a>
-        <a href="../club/updateClub.html" class="disabled">Update</a>
-        <a href="../club/deleteClub.html" class="disabled">Delete</a>
+        <a href="../club/updateClub.html">Update</a>
+        <a href="../club/deleteClub.html">Delete</a>
       </div>
     </div>
     <div class="dropdown">
       <button class="dropbtn">Association</button>
       <div class="dropdown-content">
-        <a href="../association/createAssociation.html" class="disabled">Create</a>
+        <a href="../association/createAssociation.html">Create</a>
         <a href="../association/retrieveAndListAllAssociations.html">List</a>
-        <a href="../association/updateAssociation.html" class="disabled">Update</a>
-        <a href="../association/deleteAssociation.html" class="disabled">Delete</a>
+        <a href="../association/updateAssociation.html">Update</a>
+        <a href="../association/deleteAssociation.html">Delete</a>
       </div>
     </div>
-<!--    <div class="dropdown">-->
-<!--      <button class="dropbtn">National Team</button>-->
-<!--      <div class="dropdown-content">-->
-<!--        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>-->
-<!--        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>-->
-<!--        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="dropdown">
+      <button class="dropbtn">National Team</button>
+      <div class="dropdown-content">
+        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>
+        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>
+        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>
+      </div>
+    </div>
   </div>
 </header>
 <main>
@@ -103,8 +106,63 @@
       <fieldset data-bind="type">
         <legend>Type</legend>
       </fieldset>
+      <div class="field Member"><!-- conditional field -->
+        <!--        <div class="select-many-in">-->
+        <!--          <label>Associated Clubs:-->
+        <!--            <select name="selectAssoClubs" multiple="multiple"></select>-->
+        <!--          </label>-->
+        <!--        </div>-->
+        <!--        <div class="select-many-in">-->
+        <!--          <label>Associated Associations:-->
+        <!--            <select name="selectAssoAssociations" multiple="multiple"></select>-->
+        <!--          </label>-->
+        <!--        </div>-->
+        <div class="widget">
+          <label for="upAssoClubs">Associated Clubs: <span></span></label>
+          <div id="upAssoClubs" class="MultiSelectionWidgetClub"></div>
+          <!--        </div>-->
+          <!--        <div class="widget">-->
+          <label for="upAssoAssociations">Associated Associations: <span></span></label>
+          <div id="upAssoAssociations" class="MultiSelectionWidgetAsso"></div>
+        </div>
+        <!--      <label>Associated Club:-->
+        <!--        <input type="text" name="assoClub"/>-->
+        <!--      </label>-->
+        <!--      <label>Associated Association:-->
+        <!--        <input type="text" name="assoAsso"/>-->
+        <!--      </label>-->
+      </div>
+      <div class="field Player"><!-- conditional field -->
+        <div>
+          <label>Associated Club:
+            <select name="selectClubPlayer">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="field Coach"><!-- conditional field -->
+        <div>
+          <label>Associated Club:
+            <select name="selectClubCoach">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="field President"><!-- conditional field -->
+        <div>
+          <label>Associated Association:
+            <select name="selectAssoPresident">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
       <div>
         <button type="submit" name="commit">Save Changes</button>
+        <progress hidden="hidden" max="100">%</progress>
       </div>
       <a href="../index.html">← Back to main menu</a>
     </form>

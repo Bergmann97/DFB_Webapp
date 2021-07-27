@@ -16,13 +16,40 @@
 
   <link rel="stylesheet" href="../css/normalize.css"/>
   <link rel="stylesheet" href="../css/main.css"/>
-
   <script src="../js/v/person/retrieveAndListAllPersons.mjs" type="module"></script>
   <script type="module">
     import { setupUiByUserStatus } from "../js/v/authenticateUser.mjs";
 
     setupUiByUserStatus();
   </script>
+  <!--  <script src="../js/c/initialize.mjs"></script>-->
+  <!--  <script src="../js/v/authenticateUser.mjs"></script>-->
+
+  <!--  <script>-->
+  <!--    window.addEventListener("load", function () {-->
+  <!--      setupUiByUserStatus();-->
+  <!--    });-->
+  <!--  </script>-->
+  <!--  <script src="./js/m/Person.mjs" type="module"></script>-->
+  <!--  <script src="./js/v/retrieveAndListAllClubs.mjs" type="module"></script>-->
+  <!--  <script type="module">-->
+  <!--    import { setupUserInterface } from "../js/v/person/retrieveAndListAllPersons.mjs";-->
+  <!--    window.addEventListener("load", setupUserInterface);-->
+  <!--    // const clearButton = document.getElementById("clearData"),-->
+  <!--    //         generateTestDataButtons = document.querySelectorAll("button.generateTestData");-->
+  <!--    // // Set event handlers for the buttons "clearData" and "generateTestData"-->
+  <!--    // clearButton.addEventListener("click", clearData);-->
+  <!--    // for (const btn of generateTestDataButtons) {-->
+  <!--    //   btn.addEventListener("click", generateTestData);-->
+  <!--    // }-->
+  <!--  </script>-->
+
+  <!--  <script>-->
+  <!--    window.addEventListener("load", setupUserInterface);-->
+  <!--  </script>-->
+  <style>
+
+  </style>
 </head>
 <body>
 <header>
@@ -64,14 +91,14 @@
         <a href="../association/deleteAssociation.html" class="disabled">Delete</a>
       </div>
     </div>
-<!--    <div class="dropdown">-->
-<!--      <button class="dropbtn">National Team</button>-->
-<!--      <div class="dropdown-content">-->
-<!--        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>-->
-<!--        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>-->
-<!--        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="dropdown">
+      <button class="dropbtn">National Team</button>
+      <div class="dropdown-content">
+        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>
+        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>
+        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>
+      </div>
+    </div>
   </div>
 </header>
 <main>
@@ -80,14 +107,25 @@
     <a href="../index.html">← Back to main menu</a>
     <hr>
     <div>
+      <label>Sorted by:
+        <select id="selectType">
+          <option value=""> ---</option>
+        </select>
+      </label>
+    </div>
+    <div id="nav-options">
       <label>Ordered by:
-        <select>
+        <select id="selectOrder">
           <option value="personId">Person ID</option>
           <option value="name">Name</option>
           <option value="dateOfBirth">Date Of Birth</option>
           <option value="gender">Gender</option>
         </select>
       </label>
+      <span id="preNextBtn">
+          <button type="button" id="previousPage">« Previous</button>
+          <button type="button" id="nextPage">Next »</button>
+        </span>
     </div>
 
     <progress hidden="hidden" max="100">%</progress>
@@ -104,6 +142,7 @@
       </thead>
       <tbody></tbody>
     </table>
+    <a href="../index.html">← Back to main menu</a>
   </div>
 </main>
 <footer>

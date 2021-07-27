@@ -17,64 +17,69 @@ import {
 }
     from "../../lib/errorTypes.mjs";
 import {GenderEL} from "./Person.mjs";
+import Player from "./Player.mjs";
+import Coach from "./Coach.mjs";
 
 /**
  * Constructor function for the class NationalTeam
  */
 class NationalTeam {
     // using a single record parameter with ES6 function parameter destructuring
-    constructor({teamId, gender}) {
+    constructor({gender, coach, coach_id, players, playerIdRefs}) {
+        // constructor({gender}) {
         // assign properties by invoking implicit setters
-        this.teamId = teamId; // number (integer)
+        // this.teamId = teamId; // number (integer)
         this.gender = gender; // GenderEL
+        this.coach = coach || coach_id; // Coach
+        this.players = players || playerIdRefs;
     };
 
-    get teamId() {
-        return this._teamId;
-    };
-    static checkTeamId(teamId) {
-        if (!teamId) {
-            return new NoConstraintViolation();  // may be optional as an IdRef
-        } else {
-            // convert to integer
-            teamId = parseInt( teamId);
-            if (isNaN( teamId) || !Number.isInteger( teamId) || teamId < 1) {
-                return new RangeConstraintViolation("The Team ID must be a positive integer!");
-            } else {
-                return new NoConstraintViolation();
-            }
-        }
-    };
-    /*
-       Checks ID uniqueness constraint against the direct type of a NationalTeam object
-       */
-    static async checkTeamIdAsId( teamId) {
-        let validationResult = NationalTeam.checkTeamId( teamId);
-        if ((validationResult instanceof NoConstraintViolation)) {
-            if (!teamId) {
-                validationResult = new MandatoryValueConstraintViolation(
-                    "A value for the Team ID must be provided!");
-            } else {
-                let teamDocSn = await db.collection("nationalTeams").doc( teamId).get();
-                if (teamDocSn.exists) {
-                    validationResult = new UniquenessConstraintViolation(
-                        "There is already a national team record with this Team ID!");
-                } else {
-                    validationResult = new NoConstraintViolation();
-                }
-            }
-        }
-        return validationResult;
-    };
-
-    set teamId( teamId) {
-        const validationResult = NationalTeam.checkTeamId ( teamId);
-        if (validationResult instanceof NoConstraintViolation) {
-            this._teamId = teamId;
-        } else {
-            throw validationResult;
-        }
-    };
+    // get teamId() {
+    //     return this._teamId;
+    // };
+    // static checkTeamId(teamId) {
+    //     if (!teamId) {
+    //         return new NoConstraintViolation();  // may be optional as an IdRef
+    //     } else {
+    //         // convert to integer
+    //         teamId = parseInt( teamId);
+    //         if (isNaN( teamId) || !Number.isInteger( teamId) || teamId < 1) {
+    //             return new RangeConstraintViolation("The Team ID must be a positive integer!");
+    //         } else {
+    //             return new NoConstraintViolation();
+    //         }
+    //     }
+    // };
+    // /*
+    //    Checks ID uniqueness constraint against the direct type of a NationalTeam object
+    //    */
+    // static async checkTeamIdAsId( teamId) {
+    //     let validationResult = NationalTeam.checkTeamId( teamId);
+    //     if ((validationResult instanceof NoConstraintViolation)) {
+    //         if (!teamId) {
+    //             validationResult = new MandatoryValueConstraintViolation(
+    //                 "A value for the Team ID must be provided!");
+    //         } else {
+    //             let teamDocSn = await db.collection("nationalTeams").doc( teamId).get();
+    //             if (teamDocSn.exists) {
+    //                 validationResult = new UniquenessConstraintViolation(
+    //                     "There is already a national team record with this Team ID!");
+    //             } else {
+    //                 validationResult = new NoConstraintViolation();
+    //             }
+    //         }
+    //     }
+    //     return validationResult;
+    // };
+    //
+    // set teamId( teamId) {
+    //     const validationResult = NationalTeam.checkTeamId ( teamId);
+    //     if (validationResult instanceof NoConstraintViolation) {
+    //         this._teamId = teamId;
+    //     } else {
+    //         throw validationResult;
+    //     }
+    // };
 
     get gender() {
         return this._gender;
@@ -92,6 +97,28 @@ class NationalTeam {
             return new NoConstraintViolation();
         }
     };
+    static async checkGenderAsId( gender) {
+        console.log("gender: " + gender + "/type: " + typeof gender);
+        let validationResult = NationalTeam.checkGender( parseInt(gender));
+        if ((validationResult instanceof NoConstraintViolation)) {
+            if (!gender) {
+                validationResult = new MandatoryValueConstraintViolation(
+                    "A value for the gender must be provided!");
+            } else {
+                let teamDocSn = await db.collection("nationalTeams").doc( String(gender)).get();
+                // console.log(teamDocSn);
+                if (teamDocSn.exists) {
+                    // console.log("exists");
+                    validationResult = new UniquenessConstraintViolation(
+                        "There is already a national team record with this gender!");
+                } else {
+                    // console.log("NOT exists");
+                    validationResult = new NoConstraintViolation();
+                }
+            }
+        }
+        return validationResult;
+    };
     set gender(g) {
         const validationResult = NationalTeam.checkGender( g);
         if (validationResult instanceof NoConstraintViolation) {
@@ -101,6 +128,42 @@ class NationalTeam {
         }
     };
 
+    get coach() {
+        return this._coach;
+    };
+    static async checkCoach( coach_id) {
+        var validationResult = null;
+        if (!coach_id) {
+            validationResult = new MandatoryValueConstraintViolation
+            ("Coach must be selected!");
+        } else {
+            // invoke foreign key constraint check
+            validationResult = await Coach.checkPersonIdAsIdRef( String(coach_id));
+        }
+        return validationResult;
+    };
+    set coach( c) {
+        this._coach = c;
+    };
+
+    get players() {
+        return this._players;
+    };
+    static async checkPlayer (player_id) {
+        var validationResult = null;
+        if (!player_id) {
+            validationResult = new MandatoryValueConstraintViolation
+            ("Players must be selected (at least 11 players)!");
+        } else {
+            // invoke foreign key constraint check
+            validationResult = await Player.checkPersonIdAsIdRef( String(player_id));
+            console.log(validationResult.message);
+        }
+        return validationResult;
+    };
+    set players( p) {
+        this._players = p;
+    }
 }
 /*********************************************************
  ***  Class-level ("static") storage management methods **
@@ -111,14 +174,22 @@ class NationalTeam {
  */
 NationalTeam.converter = {
     toFirestore: function (team) {
+        console.log(team.players);
         const data = {
-            teamId: team.teamId,
-            gender: parseInt(team.gender)
+            gender: team.gender,
+            coach_id : team.coach,
+            playerIdRefs: team.players
         };
+        console.log(data);
         return data;
     },
     fromFirestore: function (snapshot, options) {
-        const data = snapshot.data( options);
+        const team = snapshot.data( options);
+        const data = {
+            gender: parseInt(team.gender),
+            coach: team.coach_id,
+            players: team.playerIdRefs
+        }
         return new NationalTeam( data);
     }
 };
@@ -126,11 +197,19 @@ NationalTeam.converter = {
 /**
  *  Load a national team record
  */
-NationalTeam.retrieve = async function (teamId) {
+NationalTeam.retrieve = async function (gender) {
     try {
-        const teamRec = (await db.collection("nationalTeams").doc( teamId)
+        const teamRec = (await db.collection("nationalTeams").doc( gender)
             .withConverter( NationalTeam.converter).get()).data();
-        console.log(`National team record (Team ID: "${teamRec.teamId}") retrieved.`);
+        // console.log(gender + "/type: " + typeof gender);
+        // console.log(GenderEL.M + "/type: " + typeof GenderEL.M);
+
+        if (gender === GenderEL.M) {
+            console.log(`National team record (Men) retrieved.`);
+        } else if (gender === GenderEL.F) {
+            console.log(`National team record (Female) retrieved.`);
+        }
+        // console.log(`National team record (Team ID: "${teamRec.teamId}") retrieved.`);
         return teamRec;
     } catch (e) {
         console.error(`Error retrieving national team record: ${e}`);
@@ -155,25 +234,33 @@ NationalTeam.retrieveAll = async function () {
  *  Create a new national team record
  */
 NationalTeam.add = async function (slots) {
-    let team = null;
+    var validationResult = null,
+        team = null;
     try {
         team = new NationalTeam(slots);
-        let validationResult = await NationalTeam.checkTeamIdAsId( team.teamId);
+        console.log(slots);
+        console.log(team.gender + "/type: " + typeof team.gender);
+        // console.log(team.coach + "/type: " + typeof team.coach);
+        // console.log(GenderEL.M + "/type: " + typeof GenderEL.M);
+        validationResult = await NationalTeam.checkGenderAsId( String(team.gender));
+        // console.log(validationResult.message);
+        // console.log(validationResult);
         if (!validationResult instanceof NoConstraintViolation) {
+            // console.log("VALIDATION!");
             throw validationResult;
         }
-    } catch( e) {
-        console.error(`${e.constructor.name}: ${e.message}`);
-        team = null;
-    }
-    if (team) {
-        try {
-            const teamDocRef = db.collection("nationalTeams").doc( team.teamId);
-            await teamDocRef.withConverter( NationalTeam.converter).set( team);
-            console.log(`National team record (Team ID: "${team.teamId}") created.`);
-        } catch (e) {
-            console.error(`${e.constructor.name}: ${e.message} + ${e}`);
+        const teamDocRef = db.collection("nationalTeams").doc( String(team.gender));
+        // console.log(teamDocRef);
+        await teamDocRef.withConverter( NationalTeam.converter).set( team);
+
+        if (team.gender === GenderEL.M) {
+            console.log(`National team (Men) record created.`);
+        } else if (team.gender === GenderEL.F) {
+            console.log(`National team (Women) record created.`);
         }
+
+    } catch( e) {
+        console.error(`Error creating national team record: ${e}`);
     }
 };
 
@@ -181,46 +268,79 @@ NationalTeam.add = async function (slots) {
  *  Update an existing national team record
  */
 NationalTeam.update = async function (slots) {
-    var noConstraintViolated = true,
-        updatedSlots = {},
-        validationResult = null;
-    const teamDocRef = db.collection("nationalTeams").doc( slots.teamId);
+    const updatedSlots = {};
+    let validationResult = null,
+        teamRec = null,
+        teamDocRef = null;
     try {
+        teamDocRef = db.collection("nationalTeams").doc( String(slots.gender));
         const teamDocSns = await teamDocRef.withConverter( NationalTeam.converter).get();
-        const teamBeforeUpdate = teamDocSns.data();
-        if (teamBeforeUpdate.gender !== parseInt(slots.gender)) {
-            validationResult = NationalTeam.checkGender( slots.gender);
+        teamRec = teamDocSns.data();
+
+        console.log(teamRec);
+    } catch (e) {
+        console.log(`${e.constructor.name}: ${e.message}`);
+    }
+    try {
+
+        if (slots.coach_id && teamRec.coach !== slots.coach_id) {
+            validationResult = await NationalTeam.checkCoach( slots.coach_id);
             if (validationResult instanceof NoConstraintViolation) {
-                updatedSlots.gender = parseInt(slots.gender);
+                updatedSlots.coach_id = slots.coach_id;
             } else {
                 throw validationResult;
             }
+        } else if (!slots.coach_id && teamRec.coach !== undefined) {
+            updatedSlots.coach_id = firebase.firestore.FieldValue.delete();
         }
+        let playerIdRefs = teamRec.players;
+
+        console.log(slots.playerIdRefsToRemove);
+        console.log(slots.playerIdRefsToAdd);
+
+        if (slots.playerIdRefsToAdd) {
+            playerIdRefs = playerIdRefs.concat( slots.playerIdRefsToAdd.map( d => +d));
+        }
+        if (slots.playerIdRefsToRemove) {
+            slots.playerIdRefsToRemove = slots.playerIdRefsToRemove.map( d => +d);
+            playerIdRefs = playerIdRefs.filter( d => !slots.playerIdRefsToRemove.includes( d));
+        }
+        updatedSlots.playerIdRefs = playerIdRefs;
+        console.log(playerIdRefs);
+        console.log(updatedSlots);
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
-        noConstraintViolated = false;
     }
     let updatedProperties = Object.keys( updatedSlots);
-    if (noConstraintViolated) {
-        if (updatedProperties.length > 0) {
-            await teamDocRef.update( updatedSlots);
-            console.log(`Property(ies) "${updatedProperties.toString()}" modified for national team record (Team ID: "${slots.teamId}"`);
-        } else {
-            console.log(`No property value changed for national team record (Team ID: "${slots.teamId}")!`);
+    // if (noConstraintViolated) {
+    if (updatedProperties.length > 0) {
+        await teamDocRef.withConverter( NationalTeam.converter).update( updatedSlots);
+
+        // console.log(gender + "/type: " + typeof gender);
+
+        if (parseInt(slots.gender) === GenderEL.M) {
+            console.log(`Property(ies) "${updatedProperties.toString()}" modified for national team (Men) record"`);
+        } else if (parseInt(slots.gender) === GenderEL.F) {
+            console.log(`Property(ies) "${updatedProperties.toString()}" modified for national team (Women) record"`);
         }
+    } else {
+        console.log(`No property value changed for national team record!`);
     }
+    // }
 };
 
 /**
  *  Delete a national team record
  */
-NationalTeam.destroy = async function (teamId) {
+NationalTeam.destroy = async function (gender) {
     try {
-        await db.collection("nationalTeams").doc( teamId).delete();
-        console.log(`National team record (Team ID: "${teamId}") deleted.`);
+        await db.collection("nationalTeams").doc( gender).delete();
+        if (gender === GenderEL.M) {
+            console.log(`National team record (Men) deleted.`);
+        } else if (gender === GenderEL.F) {
+            console.log(`National team record (Women) deleted.`); }
     } catch( e) {
         console.error(`Error when deleting national team record: ${e}`);
-        return;
     }
 };
 
@@ -230,17 +350,22 @@ NationalTeam.destroy = async function (teamId) {
 // Create test data
 NationalTeam.generateTestData = async function () {
     try {
-        let teamRecords = [
-            {
-                teamId: "1",
-                gender: GenderEL.M
-            },
-            {
-                teamId: "2",
-                gender: GenderEL.F
-            }
-        ];
+        // let teamRecords = [
+        //     {
+        //         gender: GenderEL.M,
+        //         coach_id: 12,
+        //         playerIdRefs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        //
+        //     },
+        //     {
+        //         gender: GenderEL.F,
+        //         coach_id: 24,
+        //         playerIdRefs: [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 28]
+        //     }
+        // ];
         console.log('Generating test data...');
+        const response = await fetch( "../../test-data/teams.json");
+        const teamRecords = await response.json();
         await Promise.all( teamRecords.map( d => NationalTeam.add( d)));
 
         console.log(`${teamRecords.length} national teams saved.`);
@@ -262,7 +387,7 @@ NationalTeam.clearData = async function () {
             await Promise.all( teamDocSns.map(
                 teamDocSn => NationalTeam.destroy( teamDocSn.id)
             ));
-            console.log(`${teamDocSns.length} national teams deleted.`);
+            console.log(`${teamDocSns.length} national team records deleted.`);
         } catch (e) {
             console.error(`${e.constructor.name}: ${e.message}`);
         }
@@ -275,9 +400,9 @@ NationalTeam.clearData = async function () {
 /**
  * Handle DB-UI synchronization
  */
-NationalTeam.syncDBwithUI = async function (teamId) {
+NationalTeam.syncDBwithUI = async function (gender) {
     try {
-        let teamDocRef = db.collection("nationalTeams").doc( teamId);
+        let teamDocRef = db.collection("nationalTeams").doc( gender);
         let originalTeamDocSn = await teamDocRef.get();
         // listen document changes returning a snapshot on every change
         return teamDocRef.onSnapshot( teamDocSn => {

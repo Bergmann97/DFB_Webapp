@@ -1,5 +1,5 @@
 /**
- * @fileOverview  Contains various view functions for the use case "delete football club"
+ * @fileOverview  Contains various view functions for the use case deleteFootballClub
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 /***************************************************************
@@ -20,6 +20,8 @@ const formEl = document.forms["Club"],
     deleteButton = formEl["commit"],
     selectClubEl = formEl["selectClub"];
 
+formEl.reset();
+
 /***************************************************************
  Set up (choice) widgets
  ***************************************************************/
@@ -35,8 +37,9 @@ deleteButton.addEventListener("click", async function () {
     const clubId = selectClubEl.value;
     if (!clubId) return;
     if (confirm("Do you really want to delete this football club record?")) {
-        FootballClub.destroy(clubId);
+        await FootballClub.destroy(clubId);
         // remove deleted football club from select options
         selectClubEl.remove(selectClubEl.selectedIndex);
+        formEl.reset();
     }
 });

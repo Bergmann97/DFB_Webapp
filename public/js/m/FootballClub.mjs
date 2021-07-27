@@ -7,28 +7,53 @@
  */
 
 import { db } from "../c/initialize.mjs";
-import {isIntegerOrIntegerString, isNonEmptyString, handleUserMessage} from "../../lib/util.mjs";
+import {
+    createIsoDateString,
+    isIntegerOrIntegerString,
+    isNonEmptyString,
+    handleUserMessage,
+    dateToTimestamp
+} from "../../lib/util.mjs";
 import {
     NoConstraintViolation,
     MandatoryValueConstraintViolation,
     RangeConstraintViolation,
     UniquenessConstraintViolation,
+    IntervalConstraintViolation, ReferentialIntegrityConstraintViolation
 }
     from "../../lib/errorTypes.mjs";
 import {GenderEL} from "./Person.mjs";
 import FootballAssociation from "./FootballAssociation.mjs";
+import Player from "./Player.mjs";
 
 /**
  * Constructor function for the class FootballClub
  */
 class FootballClub {
     // using a single record parameter with ES6 function parameter destructuring
-    constructor({clubId, name, gender}) {
+    constructor({clubId, name, gender, association, association_id}) {
         // assign properties by invoking implicit setters
         this.clubId = clubId; // number (integer)
         this.name = name; // string
         this.gender = gender; // GenderEL
+
+        this.association = association || association_id;
+        // this._clubPlayers = {};
+        // this._clubCoaches = {};
+        // this._clubMembers = {};
     };
+
+    // get clubPlayers() {
+    //     return this._clubPlayers;
+    // }
+    // get clubCoaches() {
+    //     return this._clubCoaches;
+    // }
+    // get clubMembers() {
+    //     return this._clubMembers;
+    // }
+
+
 
     get clubId() {
         return this._clubId;
@@ -68,6 +93,24 @@ class FootballClub {
         return validationResult;
     };
 
+    static async checkClubIdAsIdRef( id) {
+        var constraintViolation = FootballClub.checkClubId( id);
+        if ((constraintViolation instanceof NoConstraintViolation) &&
+            id !== undefined) {
+            let clubDocSn = await db.collection("clubs").doc( id).get();
+            // console.log("clubDocSn: " + clubDocSn);
+            if (!clubDocSn.exists) {
+                constraintViolation = new ReferentialIntegrityConstraintViolation(
+                    "There is no football club record with this club ID!");
+            }
+            // if (!FootballClub.retrieve(String(id))) {
+            //     constraintViolation = new ReferentialIntegrityConstraintViolation(
+            //         "There is no football club record with this club ID!");
+            // }
+        }
+        return constraintViolation;
+    }
+
     set clubId( clubId) {
         const validationResult = FootballClub.checkClubId ( clubId);
         if (validationResult instanceof NoConstraintViolation) {
@@ -83,7 +126,7 @@ class FootballClub {
     static checkName(n) {
         if (!n) {
             return new MandatoryValueConstraintViolation
-            ("A name must be provided!");
+            ("[Football Club] A name must be provided!");
         } else if (!isNonEmptyString(n)) {
             return new RangeConstraintViolation
             ("The name must be a non-empty string!");
@@ -125,6 +168,24 @@ class FootballClub {
         }
     };
 
+    get association() {
+        return this._association;
+    }
+    static async checkAssociation(association_id) {
+        var validationResult = null;
+        if (!association_id) {
+            validationResult = new MandatoryValueConstraintViolation(
+                "A value for the association must be provided!");
+        } else {
+            // invoke foreign key constraint check
+            validationResult = await FootballAssociation.checkAssoIdAsIdRef( association_id);
+        }
+        return validationResult;
+    }
+    set association(a) {
+        this._association = a;
+    }
+
 }
 /*********************************************************
  ***  Class-level ("static") storage management methods **
@@ -135,15 +196,23 @@ class FootballClub {
  */
 FootballClub.converter = {
     toFirestore: function (club) {
+        console.log(club.association + "/type: " + typeof club.association);
         const data = {
             clubId: club.clubId,
             name: club.name,
-            gender: parseInt(club.gender)
+            gender: parseInt(club.gender),
+            association_id: club.association
         };
         return data;
     },
     fromFirestore: function (snapshot, options) {
-        const data = snapshot.data( options);
+        const club = snapshot.data( options);
+        const data = {
+            clubId: club.clubId,
+            name: club.name,
+            gender: parseInt(club.gender),
+            association: club.association_id
+        };
         return new FootballClub( data);
     }
 };
@@ -179,43 +248,83 @@ FootballClub.retrieveAll = async function (order) {
 };
 
 /**
+ * Retrieve block of football club records
+ */
+FootballClub.retrieveBlock = async function (params) {
+    try {
+        let clubsCollRef = db.collection("clubs");
+        // set limit and order in query
+        clubsCollRef = clubsCollRef.limit( 11);
+        if (params.order) clubsCollRef = clubsCollRef.orderBy( params.order);
+        // set pagination 'startAt' cursor
+        if (params.cursor) {
+            clubsCollRef = clubrsCollRef.startAt( params.cursor);
+        }
+        const clubRecords = (await clubsCollRef.withConverter( FootballClub.converter)
+            .get()).docs.map( d => d.data());
+        console.log(`Block of football club records retrieved! (cursor: ${clubRecords[0][params.order]})`);
+        return clubRecords;
+    } catch (e) {
+        console.error(`Error retrieving all football club records: ${e}`);
+    }
+};
+
+/**
  *  Create a new football club record
  */
 FootballClub.add = async function (slots) {
-    let club = null;
+    console.log(slots);
+    var validationResult = null,
+        club = null;
     try {
         club = new FootballClub(slots);
-        let validationResult = await FootballClub.checkClubIdAsId( club.clubId);
+        console.log(club.clubId + "/type: " + typeof club.clubId);
+        validationResult = await FootballClub.checkClubIdAsId( club.clubId);
         if (!validationResult instanceof NoConstraintViolation) {
             throw validationResult;
         }
+        const clubDocRef = db.collection("clubs").doc( club.clubId);
+        await clubDocRef.withConverter( FootballClub.converter).set( club);
+        console.log(`Football club record (Club ID: "${club.clubId}") created!`);
+        // await personDocRef.set( slots);
     } catch( e) {
         console.error(`${e.constructor.name}: ${e.message}`);
-        club = null;
+        // club = null;
     }
-    if (club) {
-        try {
-            const clubDocRef = db.collection("clubs").doc( club.clubId);
-            await clubDocRef.withConverter( FootballClub.converter).set( club);
-            console.log(`Football club record (Club ID: "${club.clubId}") created.`);
-        } catch (e) {
-            console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-        }
-    }
+    // if (club) {
+    //     try {
+    //         const clubDocRef = db.collection("clubs").doc( club.clubId);
+    //         await clubDocRef.withConverter( FootballClub.converter).set( club);
+    //         console.log(`Football club record (Club ID: "${club.clubId}") created.`);
+    //     } catch (e) {
+    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
+    //     }
+    // }
 };
 
 /**
  *  Update an existing football club record
  */
 FootballClub.update = async function (slots) {
-    var noConstraintViolated = true,
-        updatedSlots = {},
-        validationResult = null;
-    const clubDocRef = db.collection("clubs").doc( slots.clubId);
+    const updatedSlots = {};
+    let validationResult = null,
+        clubRec = null,
+        clubDocRef = null;
+
+    // const clubDocRef = db.collection("clubs").doc( slots.clubId);
+
     try {
-        const clubDocSns = await clubDocRef.withConverter( FootballClub.converter).get();
-        const clubBeforeUpdate = clubDocSns.data();
-        if (clubBeforeUpdate.name !== slots.name) {
+        clubDocRef = db.collection("clubs").doc(slots.clubId);
+        const clubDocSn = await clubDocRef.withConverter(FootballClub.converter).get();
+        clubRec = clubDocSn.data();
+    } catch (e) {
+        console.error(`${e.constructor.name}: ${e.message}`);
+    }
+
+    try {
+        // const clubDocSns = await clubDocRef.withConverter( FootballClub.converter).get();
+        // const clubBeforeUpdate = clubDocSns.data();
+        if (clubRec.name !== slots.name) {
             validationResult = FootballClub.checkName( slots.name);
             if (validationResult instanceof NoConstraintViolation) {
                 updatedSlots.name = slots.name;
@@ -223,7 +332,7 @@ FootballClub.update = async function (slots) {
                 throw validationResult;
             }
         }
-        if (clubBeforeUpdate.gender !== parseInt(slots.gender)) {
+        if (clubRec.gender !== parseInt(slots.gender)) {
             validationResult = FootballClub.checkGender( slots.gender);
             if (validationResult instanceof NoConstraintViolation) {
                 updatedSlots.gender = parseInt(slots.gender);
@@ -231,19 +340,29 @@ FootballClub.update = async function (slots) {
                 throw validationResult;
             }
         }
+        if (slots.association && clubRec.association !== parseInt(slots.association)) {
+            validationResult = await FootballClub.checkAssociation( slots.association);
+            if (validationResult instanceof NoConstraintViolation) {
+                updatedSlots.association = parseInt(slots.association);
+            } else {
+                throw validationResult;
+            }
+        } else if (!parseInt(slots.association) && clubRec.association !== undefined) {
+            updatedSlots.association = firebase.firestore.FieldValue.delete();
+        }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
-        noConstraintViolated = false;
+        // noConstraintViolated = false;
     }
     let updatedProperties = Object.keys( updatedSlots);
-    if (noConstraintViolated) {
-        if (updatedProperties.length > 0) {
-            await clubDocRef.update( updatedSlots);
-            console.log(`Property(ies) "${updatedProperties.toString()}" modified for football club record (Club ID: "${slots.clubId}")`);
-        } else {
-            console.log(`No property value changed for football club record (Club ID: "${slots.clubId}")!`);
-        }
+    // if (noConstraintViolated) {
+    if (updatedProperties.length > 0) {
+        await clubDocRef.withConverter( FootballClub.converter).update( updatedSlots);
+        console.log(`Property(ies) "${updatedProperties.toString()}" modified for football club record (Club ID: "${slots.clubId}")`);
+    } else {
+        console.log(`No property value changed for football club record (Club ID: "${slots.clubId}")!`);
     }
+    // }
 };
 
 /**
@@ -251,12 +370,61 @@ FootballClub.update = async function (slots) {
  */
 FootballClub.destroy = async function (clubId) {
     try {
-        await db.collection("clubs").doc( clubId).delete();
-        console.log(`Football club record (Club ID: "${clubId}") deleted.`);
-    } catch( e) {
-        console.error(`Error when deleting football club record: ${e}`);
-        return;
+        // console.log(clubId + "/type: " + typeof clubId);
+        const membersCollRef = db.collection("members"),
+            playersCollRef = db.collection("players"),
+            coachesCollRef = db.collection("coaches"),
+            clubsCollRef = db.collection("clubs"),
+            playerQrySn = playersCollRef.where("assoClub", "==", parseInt(clubId)),
+            coachQrySn = coachesCollRef.where("assoClub", "==", parseInt(clubId)),
+            memberQrySn = membersCollRef.where("assoClubIdRefs", "array-contains", clubId),
+            associatedPlayerDocSns = (await playerQrySn.get()).docs,
+            associatedCoachDocSns = (await coachQrySn.get()).docs,
+            associatedMemberDocSns = (await memberQrySn.get()).docs,
+            clubDocRef = clubsCollRef.doc( clubId);
+
+        // initiate batch write
+        const batch = db.batch();
+        console.log(associatedMemberDocSns);
+        for (const am of associatedMemberDocSns) {
+            const memberDocRef = membersCollRef.doc( am.id);
+            console.log(memberDocRef);
+            // remove associated clubId from each Member record
+            batch.update( memberDocRef, {
+                assoClubIdRefs: firebase.firestore.FieldValue.arrayRemove( clubId)
+            });
+        }
+        for (const ap of associatedPlayerDocSns) {
+            const playerDocRef = playersCollRef.doc( ap.id);
+            // remove associated football club from each player record
+            batch.update( playerDocRef, {
+                assoClub: firebase.firestore.FieldValue.delete()
+            });
+        }
+        for (const ac of associatedCoachDocSns) {
+            const coachDocRef = coachesCollRef.doc( ac.id);
+            // remove associated football club from each coach record
+            batch.update( coachDocRef, {
+                assoClub: firebase.firestore.FieldValue.delete()
+            });
+        }
+
+        // delete football club record
+        batch.delete( clubDocRef);
+        batch.commit(); // finish batch write
+        console.log(`Football club record (Club ID: "${clubId}") deleted!`);
+    } catch (e) {
+        console.error(`Error deleting football club record: ${e}`);
     }
+
+
+    // try {
+    //     await db.collection("clubs").doc( clubId).delete();
+    //     console.log(`Football club record (Club ID: "${clubId}") deleted.`);
+    // } catch( e) {
+    //     console.error(`Error when deleting football club record: ${e}`);
+    //     return;
+    // }
 };
 
 /*******************************************
@@ -265,9 +433,48 @@ FootballClub.destroy = async function (clubId) {
 // Create test data
 FootballClub.generateTestData = async function () {
     try {
+        // let clubRecords = [
+        //     {
+        //         clubId: "1",
+        //         name: "Arsenal FC",
+        //         gender: GenderEL.M,
+        //         association_id: 1
+        //     },
+        //     {
+        //         clubId: "2",
+        //         name: "Bayern Munich",
+        //         gender: GenderEL.M,
+        //         association_id: 1
+        //     },
+        //     {
+        //         clubId: "3",
+        //         name: "Eintracht Frankfurt",
+        //         gender: GenderEL.M,
+        //         association_id: 2
+        //     },
+        //     {
+        //         clubId: "4",
+        //         name: "Bayern Munich",
+        //         gender: GenderEL.F,
+        //         association_id: 2
+        //     },
+        //     {
+        //         clubId: "5",
+        //         name: "Eintracht Frankfurt",
+        //         gender: GenderEL.F,
+        //         association_id: 3
+        //     },
+        //     {
+        //         clubId: "6",
+        //         name: "SGS Essen",
+        //         gender: GenderEL.F,
+        //         association_id: 3
+        //     }
+        // ];
         console.log('Generating test data...');
         const response = await fetch( "../../test-data/clubs.json");
         const clubRecords = await response.json();
+        console.log(clubRecords);
         await Promise.all( clubRecords.map( d => FootballClub.add( d)));
 
         console.log(`${clubRecords.length} football clubs saved.`);
@@ -289,7 +496,7 @@ FootballClub.clearData = async function () {
             await Promise.all( clubDocSns.map(
                 clubDocSn => FootballClub.destroy( clubDocSn.id)
             ));
-            console.log(`${clubDocSns.length} football clubs deleted.`);
+            console.log(`${clubDocSns.length} football club records deleted.`);
         } catch (e) {
             console.error(`${e.constructor.name}: ${e.message}`);
         }

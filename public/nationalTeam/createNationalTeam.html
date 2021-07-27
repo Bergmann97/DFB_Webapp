@@ -23,6 +23,7 @@
 
     <link rel="stylesheet" href="../css/normalize.css"/>
     <link rel="stylesheet" href="../css/main.css"/>
+    <style></style>
 </head>
 <body>
 <header>
@@ -77,28 +78,32 @@
 <main>
     <div class="wrapper clearfix">
         <h2 class="intitle">Create a National Team</h2>
-        <form id="NationalTeam">
-            <div class="field">
-                <label>Team ID: <input type="text" name="teamId"/></label>
-            </div>
+        <form id="Team">
+            <!--            <div class="field">-->
+            <!--                <label>Team ID: <input type="text" name="teamId"/></label>-->
+            <!--            </div>-->
             <fieldset data-bind="gender">
                 <legend>Gender</legend>
             </fieldset>
 
-<!--            <div>-->
-<!--                <label>Coach:-->
-<!--                    <select name="selectCoach">-->
-<!--                        <option value=""> -&#45;&#45;</option>-->
-<!--                    </select>-->
-<!--                </label>-->
-<!--            </div>-->
+            <div>
+                <label>Coach:
+                    <select name="selectCoach">
+                        <option value=""> ---</option>
+                    </select>
+                </label>
+            </div>
+            <div class="widget">
+                <label for="crtPlayers">Players: <span></span></label>
+                <div id="crtPlayers" class="MultiSelectionWidget"></div>
+            </div>
             <!--            <div class="select-many">-->
             <!--                <label>Players:-->
             <!--                    <select name="selectPlayers" multiple="multiple"></select>-->
             <!--                </label>-->
             <!--            </div>-->
 
-            <div>
+            <div class="saveBtn">
                 <button name="commit" type="button">Save</button>
                 <progress hidden="hidden" max="100">%</progress>
             </div>

@@ -5,6 +5,8 @@
 import FootballClub from "../../m/FootballClub.mjs";
 import {GenderEL} from "../../m/Person.mjs";
 import {createChoiceWidget, fillSelectWithOptions} from "../../../lib/util.mjs";
+import FootballAssociation from "../../m/FootballAssociation.mjs";
+import Player from "../../m/Player.mjs";
 
 /***************************************************************
  Load data
@@ -17,7 +19,7 @@ const clubRecords = await FootballClub.retrieveAll();
 const formEl = document.forms["Club"],
     selectClubEl = formEl.selectClub,
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
-    // selectAssoEl = formEl.selectAsso,
+    selectAssoEl = formEl.selectAsso,
     // selectCoachEl = formEl.selectCoach,
     // selectPlayersEl = document.getElementById("players"),
     // selectMembersEl = document.getElementById("members"),
@@ -34,14 +36,29 @@ let cancelSyncDBwithUI = null;
 // set up the football club selection list
 fillSelectWithOptions( selectClubEl, clubRecords, {valueProp:"clubId", displayProp:"name"});
 
+
+
 // when a football club is selected, fill the form with its data
 selectClubEl.addEventListener("change", async function () {
     const clubId = selectClubEl.value;
     if (clubId) {
         // retrieve up-to-date football club record
         const clubRec = await FootballClub.retrieve( clubId);
+
+        // // load all football association records
+        const assoRecords = await FootballAssociation.retrieveAll();
+        for (const assoRec of assoRecords) {
+            const optionEl = document.createElement("option");
+            optionEl.text = assoRec.name;
+            optionEl.value = assoRec.assoId;
+
+            selectAssoEl.add( optionEl, null);
+        }
+
         formEl.clubId.value = clubRec.clubId;
         formEl.name.value = clubRec.name;
+        selectAssoEl.value = await FootballAssociation.retrieve(String(clubRec.association)).then(value => value.assoId);
+
 
         // set up the gender radio button group
         createChoiceWidget( genderFieldsetEl, "gender",
@@ -67,6 +84,12 @@ formEl.name.addEventListener("input", function () {
 genderFieldsetEl.addEventListener("click", function () {
     formEl.gender[0].setCustomValidity(
         (!genderFieldsetEl.getAttribute("data-value")) ? "A gender must be selected!":"" );
+});
+selectAssoEl.addEventListener("click", function () {
+    formEl.selectAsso.setCustomValidity(
+        formEl.selectAsso.value.length > 0 ? "" :
+            "No association selected!"
+    );
 });
 
 /******************************************************************
@@ -95,16 +118,19 @@ async function handleSubmitButtonClickEvent() {
     const slots = {
         clubId: formEl.clubId.value,
         name: formEl.name.value,
-        gender: genderFieldsetEl.getAttribute("data-value")
+        gender: genderFieldsetEl.getAttribute("data-value"),
+        association: parseInt(formEl.selectAsso.value)
     };
     // set error messages in case of constraint violations
     formEl.name.setCustomValidity( FootballClub.checkName( slots.name).message);
     formEl.gender[0].setCustomValidity( FootballClub.checkGender( slots.gender).message);
-
+    formEl.selectAsso.setCustomValidity(
+        (formEl.selectAsso.value.length > 0) ? "" : "No association selected!"
+    );
     if (formEl.checkValidity()) {
-        FootballClub.update( slots);
+        await FootballClub.update(slots);
         // update the selection list option
-        selectClubEl.options[selectClubEl.selectedIndex].text = slots.name;
+        selectClubEl.innerHTML = "";
         formEl.reset();
     }
 }

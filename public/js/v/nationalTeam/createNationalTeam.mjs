@@ -1,23 +1,35 @@
 /**
- * @fileOverview  View methods for the use case "create national team"
- * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
+ * @fileOverview  View methods for the use case "create person"
+ * @authors Gerd Wagner & Juan-Francisco Reyes
  */
-import {GenderEL} from "../../m/Person.mjs";
+import FootballClub from "../../m/FootballClub.mjs";
+import Person, {GenderEL} from "../../m/Person.mjs";
 
 import {
+    undisplayAllSegmentFields,
+    displaySegmentFields,
     createChoiceWidget,
-    showProgressBar
+    fillSelectWithOptionsClub, showProgressBar, fillSelectWithOptions, createMultiSelectionWidget
 } from "../../../lib/util.mjs";
+import Coach from "../../m/Coach.mjs";
+import Player from "../../m/Player.mjs";
 import NationalTeam from "../../m/NationalTeam.mjs";
+import Member from "../../m/Member.mjs";
+import {MandatoryValueConstraintViolation} from "../../../lib/errorTypes.mjs";
 
 /***************************************************************
  Declare variables for accessing UI elements
  ***************************************************************/
-const formEl = document.forms['NationalTeam'],
+const formEl = document.forms['Team'],
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
-    // selectCoachEl = formEl.selectCoach,
+    selectCoachEl = formEl.selectCoach,
     // selectPlayersEl = formEl.selectPlayers,
+    playersCrtWidget = formEl.querySelector(
+        ".MultiSelectionWidget"),
     saveButton = formEl.commit;
+createMultiSelectionWidget( playersCrtWidget, [],
+    "crtPlayers", "Enter ID", 11);
+formEl.reset();
 
 
 /***************************************************************
@@ -27,7 +39,7 @@ const formEl = document.forms['NationalTeam'],
 createChoiceWidget( genderFieldsetEl, "gender", [],
     "radio", GenderEL.labels);
 
-// const coachRecords = await Coach.retrieveAll();
+const coachRecords = await Coach.retrieveAll();
 // const playerRecords = await Player.retrieveAll();
 //
 // // fillSelectWithOptions(selectCoachEl,
@@ -35,13 +47,13 @@ createChoiceWidget( genderFieldsetEl, "gender", [],
 // //     "personId", "name");
 //
 //
-// for (const coachRecord of coachRecords) {
-//     const optionEl = document.createElement("option");
-//     optionEl.text = coachRecord.name;
-//     optionEl.value = coachRecord.personId;
-//
-//     selectCoachEl.add( optionEl, null);
-// }
+for (const coachRecord of coachRecords) {
+    const optionEl = document.createElement("option");
+    optionEl.text = coachRecord.name;
+    optionEl.value = coachRecord.personId;
+
+    selectCoachEl.add( optionEl, null);
+}
 //
 // for (const playerRecord of playerRecords) {
 //     const optionEl = document.createElement("option");
@@ -51,26 +63,29 @@ createChoiceWidget( genderFieldsetEl, "gender", [],
 //
 //     selectPlayersEl.add( optionEl, null);
 // }
-
+genderFieldsetEl.addEventListener("click", async function () {
+    let responseValidation = await NationalTeam.checkGenderAsId( genderFieldsetEl.getAttribute("data-value"));
+    formEl.gender[0].setCustomValidity( responseValidation.message);
+});
 /***************************************************************
  Add event listeners for responsive validation
  ***************************************************************/
 // add event listeners for responsive validation
-formEl.teamId.addEventListener("input", function () {
-    formEl.teamId.setCustomValidity( NationalTeam.checkTeamId
-    ( formEl.teamId.value).message);
-});
+// formEl.teamId.addEventListener("input", function () {
+//     formEl.teamId.setCustomValidity( NationalTeam.checkTeamId
+//     ( formEl.teamId.value).message);
+// });
 genderFieldsetEl.addEventListener("click", function () {
     formEl.gender[0].setCustomValidity(
         (!genderFieldsetEl.getAttribute("data-value")) ?
             "A gender must be selected!":"" );
 });
-// selectCoachEl.addEventListener("click", function () {
-//     formEl.selectCoach.setCustomValidity(
-//         formEl.selectCoach.value.length > 0 ? "" :
-//             "No coach selected!"
-//     );
-// });
+selectCoachEl.addEventListener("click", function () {
+    formEl.selectCoach.setCustomValidity(
+        formEl.selectCoach.value.length > 0 ? "" :
+            "No coach selected!"
+    );
+});
 //
 // selectPlayersEl.addEventListener("click", function () {
 //     formEl.selectPlayers.setCustomValidity(
@@ -95,22 +110,48 @@ formEl.addEventListener( 'submit', function (e) {
 // window.addEventListener("beforeunload", Person.saveAll);
 
 async function handleSaveButtonClickEvent() {
-    const formEl = document.forms['NationalTeam']
+    const formEl = document.forms['Team'],
+        playersListEl = playersCrtWidget.querySelector("ul"),
+        playersSpanEl = document.querySelector("div.widget > label > span");
 
     const slots = {
-        teamId: formEl.teamId.value,
-        gender: genderFieldsetEl.getAttribute("data-value")
-        // coach_id: formEl.selectCoach.value,
-        // playerIdRefs: [],
+        // teamId: formEl.teamId.value,
+        gender: parseInt(genderFieldsetEl.getAttribute("data-value")),
+        coach_id: parseInt(formEl.selectCoach.value),
+        playerIdRefs: []
     };
 
     showProgressBar( "show");
-    formEl.teamId.setCustomValidity(( await NationalTeam.checkTeamIdAsId(slots.teamId)).message);
-    formEl.gender[0].setCustomValidity( NationalTeam.checkGender( slots.gender).message);
-    // formEl.coach_id.setCustomValidity( NationalTeam.checkCoach( slots.coach_id).message);
+    const selectedGender = genderFieldsetEl.getAttribute("data-value");
+    // console.log(slots.gender + "/type: " + typeof slots.gender);
+    // formEl.teamId.setCustomValidity(( await NationalTeam.checkTeamIdAsId(slots.teamId)).message);
+    // selectedGender.setCustomValidity( await NationalTeam.checkGenderAsId( slots.gender).message);
 
-    // formEl.playerIdRefs[0].setCustomValidity(
-    //     NationalTeam.checkPlayer( slots.type).message);
+    let responseValidation = await NationalTeam.checkGenderAsId( genderFieldsetEl.getAttribute("data-value"));
+    formEl.gender[0].setCustomValidity( responseValidation.message);
+
+    formEl.selectCoach.setCustomValidity(
+        (formEl.selectCoach.value.length > 0) ? "" : "No coach selected!"
+    );
+
+    // get the list of selected players
+    for (const el of playersListEl.children) {
+        slots.playerIdRefs.push( parseInt(el.getAttribute("data-value")));
+    }
+    console.log(slots.playerIdRefs + "/length: " + slots.playerIdRefs.length);
+    if (slots.playerIdRefs.length > 0) {
+        for (const p of slots.playerIdRefs) {
+            // console.log("ac: " + ac + "/type: " + typeof ac);
+            let responseValidation = await NationalTeam.checkPlayer(p);
+            if (responseValidation.message) {
+                formEl["crtPlayers"].setCustomValidity( responseValidation.message);
+                break;
+            }  else formEl["crtPlayers"].setCustomValidity( "");
+        }
+    }
+    // else{
+    //     formEl["crtPlayers"].setCustomValidity( "");
+    // }
 
     // get the list of selected players
     // const selPlayerOptions = formEl.selectPlayers.selectedOptions;
@@ -119,8 +160,15 @@ async function handleSaveButtonClickEvent() {
         // for (const opt of selPlayerOptions) {
         //     slots.playerIdRefs.push( opt.value);
         // }
-        await NationalTeam.add( slots);
-        formEl.reset();
+        if (slots.playerIdRefs.length >= 11) {
+
+            await NationalTeam.add( slots);
+            playersListEl.innerHTML = "";
+            formEl.reset();
+        } else {
+            alert("At least 11 players must be selected!");
+        }
+
     }
     showProgressBar( "hide");
 }

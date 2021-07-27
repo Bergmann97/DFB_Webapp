@@ -3,20 +3,36 @@
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 import FootballAssociation from "../../m/FootballAssociation.mjs";
+import Person, { GenderEL } from "../../m/Person.mjs";
 
 import {
-    showProgressBar
+    undisplayAllSegmentFields,
+    displaySegmentFields,
+    createChoiceWidget,
+    fillSelectWithOptionsClub, showProgressBar, fillSelectWithOptions, createMultiSelectionWidget
 } from "../../../lib/util.mjs";
+import Coach from "../../m/Coach.mjs";
+import Player from "../../m/Player.mjs";
+import Member from "../../m/Member.mjs";
+import President from "../../m/President.mjs";
+import FootballClub from "../../m/FootballClub.mjs";
 
 /***************************************************************
  Declare variables for accessing UI elements
  ***************************************************************/
 const formEl = document.forms['Association'],
+    supAssoCrtWidget = formEl.querySelector("form > div > .MultiSelectionWidget"),
     // selectPresidentEl = formEl.selectPresident,
     // selectSupAssosEl = formEl.selectSupAssos,
     // selectMembersEl = formEl.selectMembers,
     // selectClubsEl = formEl.selectClubs,
     saveButton = formEl.commit;
+
+createMultiSelectionWidget( supAssoCrtWidget, [],
+    "crtSupAssos", "Enter ID", 0);
+formEl.reset();
+
+
 
 
 /***************************************************************
@@ -66,10 +82,17 @@ const formEl = document.forms['Association'],
 /***************************************************************
  Add event listeners for responsive validation
  ***************************************************************/
+// // set up event handlers for responsive constraint validation
+// formEl.assoId.addEventListener("input", async function () {
+//     let responseValidation = await FootballAssociation.checkAssoIdAsId( formEl.assoId.value);
+//     formEl["assoId"].setCustomValidity( responseValidation.message);
+// });
+
 // add event listeners for responsive validation
-formEl.assoId.addEventListener("input", function () {
-    formEl.assoId.setCustomValidity( FootballAssociation.checkAssoId
-    ( formEl.assoId.value).message);
+formEl.assoId.addEventListener("input", async function () {
+    // console.log("formEl.assoId.value: " + formEl.assoId.value + "/type: " + typeof formEl.assoId.value);
+    let responseValidation = await FootballAssociation.checkAssoIdAsId( formEl.assoId.value);
+    formEl.assoId.setCustomValidity( responseValidation.message);
 });
 formEl.name.addEventListener("input", function () {
     formEl.name.setCustomValidity( FootballAssociation.checkName
@@ -98,13 +121,13 @@ formEl.addEventListener( 'submit', function (e) {
 // window.addEventListener("beforeunload", Person.saveAll);
 
 async function handleSaveButtonClickEvent() {
-
+    const supAssociationsListEl = supAssoCrtWidget.querySelector("ul");
     const slots = {
         assoId: formEl.assoId.value,
-        name: formEl.name.value
+        name: formEl.name.value,
         // president_id: formEl.selectPresident.value
 
-        // supAssociationIdRefs: [],
+        supAssociationIdRefs: []
         // memberIdRefs: [],
         // clubIdRefs: []
     };
@@ -131,13 +154,34 @@ async function handleSaveButtonClickEvent() {
     //     }
     // }
 
-    showProgressBar( "show");
+
     formEl.assoId.setCustomValidity(( await FootballAssociation.checkAssoIdAsId(slots.assoId)).message);
     formEl.name.setCustomValidity( FootballAssociation.checkName( slots.name).message);
     // formEl.selectPresident.setCustomValidity( FootballAssociation.checkPresident( slots.president_id).message);
 
+// get the list of selected supAssociations
+    for (const el of supAssociationsListEl.children) {
+        slots.supAssociationIdRefs.push( parseInt( el.getAttribute("data-value")));
+    }
+    if (slots.supAssociationIdRefs.length > 0) {
+        for (const sa of slots.supAssociationIdRefs) {
+            let responseValidation = await FootballAssociation.checkSupAssociation( String(sa));
+            if (responseValidation.message) {
+                formEl["crtSupAssos"].setCustomValidity( responseValidation.message);
+                break;
+            }  else formEl["crtSupAssos"].setCustomValidity( "");
+        }
+    }
+    // else {
+    //     formEl["crtSupAssos"].setCustomValidity(
+    //         formEl["crtSupAssos"].value ? "" : "No superior association selected!"
+    //     );
+    // }
+
+    showProgressBar( "show");
     if (formEl.checkValidity()) {
         await FootballAssociation.add( slots);
+        supAssociationsListEl.innerHTML = "";
         formEl.reset();
     }
     showProgressBar( "hide");

@@ -24,6 +24,17 @@
 
   <link rel="stylesheet" href="../css/normalize.css"/>
   <link rel="stylesheet" href="../css/main.css"/>
+  <!--  <script type="module">-->
+  <!--    import { handleSaveButtonClickEvent } from "./js/v/createClub.mjs";-->
+  <!--    window.addEventListener("load", handleSaveButtonClickEvent);-->
+  <!--  </script>-->
+  <!--  <script>-->
+  <!--    // window.addEventListener("load", pl.v.createPerson.setupUserInterface);-->
+  <!--    window.addEventListener("load", createPerson);-->
+  <!--  </script>-->
+  <style>
+
+  </style>
 </head>
 <body>
 <header>
@@ -65,14 +76,14 @@
         <a href="../association/deleteAssociation.html" class="disabled">Delete</a>
       </div>
     </div>
-<!--    <div class="dropdown">-->
-<!--      <button class="dropbtn">National Team</button>-->
-<!--      <div class="dropdown-content">-->
-<!--        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>-->
-<!--        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>-->
-<!--        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>-->
-<!--      </div>-->
-<!--    </div>-->
+    <div class="dropdown">
+      <button class="dropbtn">National Team</button>
+      <div class="dropdown-content">
+        <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>
+        <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>
+        <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>
+      </div>
+    </div>
   </div>
 </header>
 <main>
@@ -97,48 +108,83 @@
         <legend>Type</legend>
       </fieldset>
 
-      <!--    <div class="field Member">&lt;!&ndash; conditional field &ndash;&gt;-->
-      <!--      <div class="select-many">-->
-      <!--        <label>Associated Clubs:-->
-      <!--          <select name="selectAssoClubs" multiple="multiple"></select>-->
-      <!--        </label>-->
-      <!--      </div>-->
-      <!--      <div class="select-many">-->
-      <!--        <label>Associated Associations:-->
-      <!--          <select name="selectAssoAssociations" multiple="multiple"></select>-->
-      <!--        </label>-->
-      <!--      </div>-->
-      <!--    </div>-->
-      <!--    <div class="field Player">&lt;!&ndash; conditional field &ndash;&gt;-->
-      <!--      <div>-->
-      <!--        <label>Associated Club:-->
-      <!--          <select name="selectClubPlayer">-->
-      <!--            <option value=""> -&#45;&#45;</option>-->
-      <!--          </select>-->
-      <!--        </label>-->
-      <!--      </div>-->
-      <!--    </div>-->
-      <!--    <div class="field Coach">&lt;!&ndash; conditional field &ndash;&gt;-->
-      <!--      <div>-->
-      <!--        <label>Associated Club:-->
-      <!--          <select name="selectClubCoach">-->
-      <!--            <option value=""> -&#45;&#45;</option>-->
-      <!--          </select>-->
-      <!--        </label>-->
-      <!--      </div>-->
-      <!--    </div>-->
-      <!--    <div class="field President">&lt;!&ndash; conditional field &ndash;&gt;-->
-      <!--      <div>-->
-      <!--        <label>Associated Association:-->
-      <!--          <select name="selectAssociation">-->
-      <!--            <option value=""> -&#45;&#45;</option>-->
-      <!--          </select>-->
-      <!--        </label>-->
-      <!--      </div>-->
-      <!--    </div>-->
+      <div class="field Member"><!-- conditional field -->
+        <div class="widget">
+          <label for="crtAssoClubs">Associated Clubs: <span></span></label>
+          <div id="crtAssoClubs" class="MultiSelectionWidgetClub"></div>
+          <!--        </div>-->
+          <!--        <div class="widget">-->
+          <label for="crtAssoAssociations">Associated Associations: <span></span></label>
+          <div id="crtAssoAssociations" class="MultiSelectionWidgetAsso"></div>
+        </div>
+
+        <!--        <div class="select-many-in">-->
+        <!--          <label>Associated Clubs:-->
+        <!--            <select name="selectAssoClubs" multiple="multiple"></select>-->
+        <!--          </label>-->
+        <!--        </div>-->
+        <!--        <div class="select-many-in">-->
+        <!--          <label>Associated Associations:-->
+        <!--            <select name="selectAssoAssociations" multiple="multiple"></select>-->
+        <!--          </label>-->
+        <!--        </div>-->
+        <!--      <label>Associated Club:-->
+        <!--        <input type="text" name="assoClub"/>-->
+        <!--      </label>-->
+        <!--      <label>Associated Association:-->
+        <!--        <input type="text" name="assoAsso"/>-->
+        <!--      </label>-->
+      </div>
+      <div class="field Player"><!-- conditional field -->
+        <!--        <div>-->
+        <!--          <label>Associated Club:-->
+        <!--            <select name="selectClubPlayer">-->
+        <!--              <option value=""> -&#45;&#45;</option>-->
+        <!--            </select>-->
+        <!--          </label>-->
+        <!--        </div>-->
+        <!--        <div class="select-one">-->
+        <!--          <label>Associated Club: <select name="selectClubPlayer"></select></label>-->
+        <!--        </div>-->
+        <div>
+          <label>Associated Club:
+            <select name="selectClubPlayer">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="field Coach"><!-- conditional field -->
+        <div>
+          <label>Associated Club:
+            <select name="selectClubCoach">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+        <!--      <label>Associated Club:-->
+        <!--        <input type="text" name="assoClub"/>-->
+        <!--      </label>-->
+      </div>
+      <div class="field President"><!-- conditional field -->
+        <div>
+          <label>Associated Association:
+            <select name="selectAssoPresident">
+              <option value=""> ---</option>
+            </select>
+          </label>
+        </div>
+        <!--      <label>Associated Association:-->
+        <!--        <input type="text" name="assoAsso"/>-->
+        <!--      </label>-->
+      </div>
+      <!--    <div class="multi-sel"><label>Type:-->
+      <!--      <select name="type" multiple="multiple"></select>-->
+      <!--    </label></div>-->
       <div>
-        <button name="commit" type="button">Save</button>
+        <button name="commit" type="submit">Save</button>
         <progress hidden="hidden" max="100">%</progress>
+        <!--      <progress id="clearData" style="display:none"></progress>-->
       </div>
     </form>
     <a href="../index.html">← Back to main menu</a>

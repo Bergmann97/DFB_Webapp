@@ -142,13 +142,6 @@ footer div.foot-content {
     margin-top: 0px;
 }
 
-div.desc {
-    width: 60%;
-    display: inline-grid;
-    margin-right: 3em;
-
-}
-
 .dropbtn {
     background-color: #00965a;
     color: white;
@@ -212,20 +205,16 @@ div#login-management {
     border: 1px solid #cfe08e;
 }
 
+span#preNextBtn {
+    float: right;
+}
+
 #error {
     color: #ff3300;
     text-align: right;
     padding: 1em;
     background: #fff4f4;
     border: 1px solid #ff7653;
-}
-
-div.desc {
-    width: 60%;
-    display: inline-grid;
-}
-div.two-col-menu {
-    display: inline-grid;
 }
 
 div label, legend{
@@ -270,12 +259,15 @@ ul.menu {
     border: 1px solid black;
     padding: 8px;
     border-radius: 5px;
-    display: inline-grid;
+}
+
+div.two-col-menu {
+    display: inline-block;
 }
 div.two-col-menu ul.menu {
     display: inline-block;
     vertical-align: top;
-    margin: 0;
+    /*margin: 0;*/
     margin-left: 3em;
 }
 ul.menu li {
@@ -325,10 +317,26 @@ form > div > label > output {
     position: absolute;
     left: 12em;
 }
+
+div.desc {
+    width: 60%;
+    display: inline-grid;
+}
+
 /* the height of multi-line elements must be limited */
+form > div.select-many-in {
+    height: 6em;
+    display: inline-grid;
+    margin-left: 3em;
+}
 form > div.select-many {
     height: 6em;
 }
+
+form > div.select-many-in > label {
+    display: inline-grid;
+}
+
 form > div.widget {
     height: 11em;
 }
@@ -377,6 +385,39 @@ form div.MultiChoiceWidget > ul > li.removed {
 form div.MultiChoiceWidget > ul > li.added {
     color: green;
 }
+
+/*  Multiple Selection Widget */
+form div.MultiSelectionWidget {
+    max-height: 8em;
+    overflow: auto;
+}
+
+/*form div.MultiSelectionWidget > ul {*/
+/*    display: inline-block;*/
+/*    vertical-align: top;*/
+/*    margin: 0;*/
+/*}*/
+/*form div.MultiSelectionWidget > ul > li {*/
+/*    width: 100%;*/
+/*    clear: right;*/
+/*    list-style: none;*/
+/*    height: 1.5em;*/
+/*    margin: 0.5em auto;*/
+/*    !*margin-bottom: 0.5em;*!*/
+/*}*/
+/*form div.MultiSelectionWidget > ul > li > button {*/
+/*    float: right;*/
+/*    margin-left: 0.5em;*/
+/*    font-size: 70%;*/
+/*    !* vertical-align: middle; *!*/
+/*}*/
+/*form div.MultiSelectionWidget > ul > li.removed {*/
+/*    color: red;*/
+/*    text-decoration: line-through;*/
+/*}*/
+/*form div.MultiSelectionWidget > ul > li.added {*/
+/*    color: green;*/
+/*}*/
 
 
 

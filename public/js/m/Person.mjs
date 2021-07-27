@@ -7,7 +7,13 @@
  */
 
 import { db } from "../c/initialize.mjs";
-import {createIsoDateString, isIntegerOrIntegerString, isNonEmptyString} from "../../lib/util.mjs";
+import {
+  createIsoDateString,
+  isIntegerOrIntegerString,
+  isNonEmptyString,
+  handleUserMessage,
+  dateToTimestamp, timestampToDate
+} from "../../lib/util.mjs";
 import {
   NoConstraintViolation,
   MandatoryValueConstraintViolation,
@@ -18,6 +24,11 @@ import {
   from "../../lib/errorTypes.mjs";
 
 import Enumeration from "../../lib/Enumeration.mjs";
+// import Member from "./Member.mjs";
+// import Player from "./Player.mjs";
+// import Coach from "./Coach.mjs";
+// import President from "./President.mjs";
+// import Player from "./Player.mjs";
 
 /**
  * Define two Enumerations
@@ -31,23 +42,27 @@ const GenderEL = new Enumeration({"M":"Male", "F":"Female"});
 class Person {
   // using a single record parameter with ES6 function parameter destructuring
   constructor({personId, name, dateOfBirth, gender, type}) {
+    // assign properties by invoking implicit setters
     this.personId = personId; // number (integer)
     this.name = name; // string
     this.dateOfBirth = dateOfBirth; // date
     this.gender = gender; // GenderEL
     this.type = type; // PersonTypeEL
-  }
+
+  };
+
   get personId() {
     return this._personId;
-  }
+  };
   static checkPersonId(personId) {
+    personId = parseInt(personId);
     if (!personId) {
       return new NoConstraintViolation();  // may be optional as an IdRef
     } else {
       // convert to integer
       personId = parseInt( personId);
       if (isNaN( personId) || !Number.isInteger( personId) || personId < 1) {
-        return new RangeConstraintViolation("The person ID must be a positive integer!");
+        return new RangeConstraintViolation("The Person ID must be a positive integer!");
       } else {
         return new NoConstraintViolation();
       }
@@ -75,6 +90,25 @@ class Person {
     return validationResult;
   };
 
+  static async checkPersonIdAsIdRef ( personId) {
+    var validationResult = Person.checkPersonId( personId);
+    if ((validationResult instanceof NoConstraintViolation)) {
+      if (!personId) {
+        validationResult = new MandatoryValueConstraintViolation(
+            "A value for the Person ID must be provided!");
+      } else {
+        let personDocSn = await db.collection("persons").doc( personId).get();
+        if (!personDocSn.exists) {
+          validationResult = new UniquenessConstraintViolation(
+              `There is no person record with this Person ID "${personId}"!`);
+        } else {
+          validationResult = new NoConstraintViolation();
+        }
+      }
+    }
+    return validationResult;
+  };
+
   set personId( personId) {
     const validationResult = Person.checkPersonId ( personId);
     if (validationResult instanceof NoConstraintViolation) {
@@ -89,11 +123,9 @@ class Person {
   };
   static checkName(n) {
     if (!n) {
-      return new MandatoryValueConstraintViolation
-      ("A name must be provided!");
+      return new MandatoryValueConstraintViolation("[Person] A name must be provided!");
     } else if (!isNonEmptyString(n)) {
-      return new RangeConstraintViolation
-      ("The name must be a non-empty string!");
+      return new RangeConstraintViolation("The name must be a non-empty string!");
     } else {
       return new NoConstraintViolation();
     }
@@ -128,7 +160,8 @@ class Person {
   set dateOfBirth(dob) {
     const validationResult = Person.checkDateOfBirth( dob);
     if (validationResult instanceof NoConstraintViolation) {
-      this._dateOfBirth = createIsoDateString(new Date( dob));
+      // this._dateOfBirth = createIsoDateString(new Date( dob));
+      this._dateOfBirth = dob;
     } else {
       throw validationResult;
     }
@@ -200,10 +233,12 @@ class Person {
       throw validationResult;
     }
   };
+
 }
 /*********************************************************
  ***  Class-level ("static") storage management methods **
  *********************************************************/
+
 /**
  *  Conversion between a Person object and a corresponding Firestore document
  */
@@ -212,14 +247,21 @@ Person.converter = {
     const data = {
       personId: person.personId,
       name: person.name,
-      dateOfBirth: person.dateOfBirth,
+      dateOfBirth: dateToTimestamp(person.dateOfBirth),
       gender: parseInt(person.gender),
       type: person.type
     };
     return data;
   },
   fromFirestore: function (snapshot, options) {
-    const data = snapshot.data( options);
+    const person = snapshot.data( options);
+    const data = {
+      personId: person.personId,
+      name: person.name,
+      dateOfBirth: timestampToDate( person.dateOfBirth),
+      gender: parseInt(person.gender),
+      type: person.type
+    };
     return new Person( data);
   }
 };
@@ -227,20 +269,58 @@ Person.converter = {
 /**
  *  Load a person record
  */
+// Load a person record from Firestore
 Person.retrieve = async function (personId) {
   try {
     const personRec = (await db.collection("persons").doc( personId)
         .withConverter( Person.converter).get()).data();
-    console.log(`Person record "${personRec.personId}" retrieved.`);
+    console.log(`Person record (Person ID: "${personRec.personId}") retrieved.`);
     return personRec;
   } catch (e) {
     console.error(`Error retrieving person record: ${e}`);
+  }
+  // const personsCollRef = db.collection("persons"),
+  //     personDocRef = personsCollRef.doc( personId);
+  // var personDocSnapshot=null;
+  // try {
+  //   personDocSnapshot = await personDocRef.get();
+  // } catch( e) {
+  //   console.error(`Error when retrieving person record: ${e}`);
+  //   return null;
+  // }
+  // const personRecord = personDocSnapshot.data();
+  // return personRecord;
+};
+
+/**
+ * Retrieve block of person records
+ */
+Person.retrieveBlock = async function (params) {
+  try {
+    let personsCollRef = db.collection("persons");
+    // set limit and order in query
+    personsCollRef = personsCollRef.limit( 11);
+    if (params.order) personsCollRef = personsCollRef.orderBy( params.order);
+    // set pagination 'startAt' cursor
+    if (params.cursor) {
+      if (params.order === "dateOfBirth") {
+        personsCollRef = personsCollRef.startAt( dateToTimestamp( params.cursor));
+      }
+      else personsCollRef = personsCollRef.startAt( params.cursor);
+    }
+    const personRecords = (await personsCollRef.withConverter( Person.converter)
+        .get()).docs.map( d => d.data());
+    console.log(`Block of person records retrieved! (cursor: ${personRecords[0][params.order]})`);
+    return personRecords;
+  } catch (e) {
+    console.error(`Error retrieving all person records: ${e}`);
   }
 };
 
 /**
  *  Load all person records
  */
+// Load all person records from Firestore
 Person.retrieveAll = async function (order) {
   let personsCollRef = db.collection("persons");
   try {
@@ -254,45 +334,90 @@ Person.retrieveAll = async function (order) {
   }
 };
 
+/***********************************************
+ *** Class-level ("static") properties **********
+ ************************************************/
+// Person.instances = {}; // initially an empty collection (in the form of a map)
+// Person.subtypes = [];  // initially an empty collection (in the form of a list)
+
 /**
  *  Create a new person record
  */
-Person.add = async function (slots) {
-  let person = null;
+// Create a Firestore document in the Firestore collection "persons"
+Person.add = async function (personId, name, dateOfBirth, gender, type) {
+  var validationResult = null,
+      person = null;
+  // const personsCollRef = db.collection("persons"),
+  //     personDocRef = personsCollRef.doc( slots.personId);
+  const slots = {
+    personId: personId,
+    name: name,
+    dateOfBirth: dateOfBirth,
+    gender: gender,
+    type: type
+  };
   try {
     person = new Person(slots);
-    let validationResult = await Person.checkPersonIdAsId( person.personId);
+    validationResult = await Person.checkPersonIdAsId( person.personId);
     if (!validationResult instanceof NoConstraintViolation) {
       throw validationResult;
     }
+    const personDocRef = db.collection("persons").doc( person.personId);
+    await personDocRef.withConverter( Person.converter).set( person);
+    console.log(`Person record (Person ID: "${person.personId}") created!`);
     // await personDocRef.set( slots);
   } catch( e) {
     console.error(`${e.constructor.name}: ${e.message}`);
-    person = null;
+    // person = null;
   }
-  if (person) {
-    try {
-      const personDocRef = db.collection("persons").doc( person.personId);
-      await personDocRef.withConverter( Person.converter).set( person);
-      console.log(`Person record (person ID: "${person.personId}") created.`);
-    } catch (e) {
-      console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    }
-  }
+  // console.log(`Person record ${slots.name} created.`);
+  // if (person) {
+  //   try {
+  //     const personDocRef = db.collection("persons").doc( person.personId);
+  //     await personDocRef.withConverter( Person.converter).set( person);
+  //     console.log(`Person record (Person ID: "${person.personId}") created.`);
+  //
+  //     // console.log(person.type);
+  //     // if (slots.type.includes(PersonTypeEL.MEMBER)) {
+  //     //   Member.add(person);
+  //     // }
+  //   } catch (e) {
+  //     console.error(`${e.constructor.name}: ${e.message} + ${e}`);
+  //   }
+  // }
 };
 
 /**
  *  Update an existing person record
  */
+// Update a Firestore document in the Firestore collection "persons"
 Person.update = async function (slots) {
-  var noConstraintViolated = true,
-      updatedSlots = {},
-      validationResult = null;
-  const personDocRef = db.collection("persons").doc( slots.personId);
+  const updatedSlots = {};
+  let validationResult = null,
+      personRec = null,
+      personDocRef = null;
+  // var noConstraintViolated = true,
+  //     validationResult = null;
+  // const personDocRef = db.collection("persons").doc( slots.personId);
   try {
-    const personDocSns = await personDocRef.withConverter( Person.converter).get();
-    const personBeforeUpdate = personDocSns.data();
-    if (personBeforeUpdate.name !== slots.name) {
+    personDocRef = db.collection("persons").doc(slots.personId);
+    const personDocSn = await personDocRef.withConverter(Person.converter).get();
+    personRec = personDocSn.data();
+  } catch (e) {
+    console.error(`${e.constructor.name}: ${e.message}`);
+  }
+
+  try {
+    // const personBeforeUpdate = personDocSns.data();
+    // if (personBeforeUpdate.name !== slots.name) {
+    //   validationResult = Person.checkName( slots.name);
+    //   if (validationResult instanceof NoConstraintViolation) {
+    //     updatedSlots.name = slots.name;
+    //   } else {
+    //     throw validationResult;
+    //   }
+    // }
+    if (personRec.name !== slots.name) {
       validationResult = Person.checkName( slots.name);
       if (validationResult instanceof NoConstraintViolation) {
         updatedSlots.name = slots.name;
@@ -300,23 +425,39 @@ Person.update = async function (slots) {
         throw validationResult;
       }
     }
-    if (personBeforeUpdate.dateOfBirth !== slots.dateOfBirth) {
+    // if (personBeforeUpdate.dateOfBirth !== slots.dateOfBirth) {
+    //   validationResult = Person.checkDateOfBirth( slots.dateOfBirth);
+    //   if (validationResult instanceof NoConstraintViolation) {
+    //     updatedSlots.dateOfBirth = slots.dateOfBirth;
+    //   } else {
+    //     throw validationResult;
+    //   }
+    // }
+    if (personRec.dateOfBirth !== slots.dateOfBirth) {
       validationResult = Person.checkDateOfBirth( slots.dateOfBirth);
       if (validationResult instanceof NoConstraintViolation) {
-        updatedSlots.dateOfBirth = slots.dateOfBirth;
+        updatedSlots.dateOfBirth = dateToTimestamp( slots.dateOfBirth);
       } else {
         throw validationResult;
       }
     }
-    if (personBeforeUpdate.gender !== parseInt(slots.gender)) {
+    // if (personBeforeUpdate.gender !== parseInt(slots.gender)) {
+    //   validationResult = Person.checkGender( slots.gender);
+    //   if (validationResult instanceof NoConstraintViolation) {
+    //     updatedSlots.gender = parseInt(slots.gender);
+    //   } else {
+    //     throw validationResult;
+    //   }
+    // }
+    if (personRec.gender !== parseInt(slots.gender)) {
       validationResult = Person.checkGender( slots.gender);
       if (validationResult instanceof NoConstraintViolation) {
-        updatedSlots.gender = parseInt(slots.gender);
+        updatedSlots.gender = slots.gender;
       } else {
         throw validationResult;
       }
     }
-    if (!personBeforeUpdate.type.isEqualTo(slots.type)) {
+    if (!personRec.type.isEqualTo(slots.type)) {
       validationResult = Person.checkTypes( slots.type);
       if (validationResult instanceof NoConstraintViolation) {
         updatedSlots.type = slots.type;
@@ -325,26 +466,43 @@ Person.update = async function (slots) {
       }
     }
   } catch (e) {
-    console.log(`${e.constructor.name}: ${e.message}`);
-    noConstraintViolated = false;
+    console.error(`${e.constructor.name}: ${e.message}`);
   }
   let updatedProperties = Object.keys( updatedSlots);
-  if (noConstraintViolated) {
-    if (updatedProperties.length > 0) {
-      await personDocRef.update( updatedSlots);
-      console.log(`Property(ies) "${updatedProperties.toString()}" modified for person record (person ID: "${slots.personId}")`);
-    } else {
-      console.log(`No property value changed for person record (person ID: "${slots.personId}")!`);
-    }
+  if (updatedProperties.length > 0) {
+    await personDocRef.withConverter( Person.converter).update( updatedSlots);
+    console.log(`Property(ies) "${updatedProperties.toString()}" modified for person record (Person ID: "${slots.personId}")`);
+  } else {
+    console.log(`No property value changed for person record (Person ID: "${slots.personId}")!`);
   }
+  // const updSlots={};
+  // // retrieve up-to-date person record
+  // const personRec = await Person.retrieve( slots.personId);
+  // // update only those slots that have changed
+  // if (personRec.name !== slots.name) updSlots.name = slots.name;
+  // if (personRec.dateOfBirth !== slots.dateOfBirth) updSlots.dateOfBirth = slots.dateOfBirth;
+  // if (personRec.gender !== slots.gender) updSlots.gender = slots.gender;
+  // if (personRec.type !== slots.type) updSlots.type = slots.type;
+  //
+  // if (Object.keys( updSlots).length > 0) {
+  //   try {
+  //     await db.collection("persons").doc( slots.personId).update( updSlots);
+  //   } catch( e) {
+  //     console.error(`Error when updating person record: ${e}`);
+  //     return;
+  //   }
+  //   console.log(`Person record ${slots.personId} modified.`);
+  // }
 };
+
 /**
  *  Delete a person record
  */
+// Delete a Firestore document in the Firestore collection "persons"
 Person.destroy = async function (personId) {
   try {
     await db.collection("persons").doc( personId).delete();
-    console.log(`Person record with person ID '${personId}' deleted.`);
+    console.log(`Person record (Person ID: "${personId}") deleted.`);
   } catch( e) {
     console.error(`Error when deleting person record: ${e}`);
     return;
@@ -356,213 +514,224 @@ Person.destroy = async function (personId) {
 // Create test data
 Person.generateTestData = async function () {
   try {
-  let personRecords = [
-    {
-      personId: "1",
-      name: "Manuel Neuer",
-      dateOfBirth: "1986-03-27",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "2",
-      name: "Antonio Rudiger",
-      dateOfBirth: "1993-03-03",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "3",
-      name: "Marcel Halstenberg",
-      dateOfBirth: "1991-09-27",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "4",
-      name: "Matthias Ginter",
-      dateOfBirth: "1994-01-19",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "5",
-      name: "Mats Hummels",
-      dateOfBirth: "1988-12-16",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "6",
-      name: "Joshua Kimmich",
-      dateOfBirth: "1995-02-08",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "7",
-      name: "Kai Havertz",
-      dateOfBirth: "1999-06-11",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "8",
-      name: "Toni Kroos",
-      dateOfBirth: "1990-01-04",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "9",
-      name: "Kevin Volland",
-      dateOfBirth: "1992-07-30",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "10",
-      name: "Serge Gnabry",
-      dateOfBirth: "1995-07-14",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "11",
-      name: "Timo Werner",
-      dateOfBirth: "1996-03-06",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "12",
-      name: "Joachim Löw",
-      dateOfBirth: "1960-02-03",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.COACH]
-    },
-    {
-      personId: "13",
-      name: "Merle Frohms",
-      dateOfBirth: "1995-01-28",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "14",
-      name: "Sophia Kleinherne",
-      dateOfBirth: "2000-04-12",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "15",
-      name: "Jana Feldkamp",
-      dateOfBirth: "1998-03-15",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "16",
-      name: "Leonie Maier",
-      dateOfBirth: "1992-09-29",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "17",
-      name: "Lena Sophie Oberdorf",
-      dateOfBirth: "2001-12-19",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "18",
-      name: "Lea Schuller",
-      dateOfBirth: "1997-11-12",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "19",
-      name: "Sydney Lohmann",
-      dateOfBirth: "2000-06-19",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "20",
-      name: "Svenja Huth",
-      dateOfBirth: "1991-01-25",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "21",
-      name: "Laura Benkarth",
-      dateOfBirth: "1992-10-14",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "22",
-      name: "Laura Freigang",
-      dateOfBirth: "1998-02-01",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "23",
-      name: "Tabea Wassmuth",
-      dateOfBirth: "1996-08-25",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PLAYER]
-    },
-    {
-      personId: "24",
-      name: "Martina Voss-Tecklenburg",
-      dateOfBirth: "1967-12-22",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.COACH]
-    },
-    {
-      personId: "25",
-      name: "Peter Peters",
-      dateOfBirth: "1965-11-10",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.PRESIDENT]
-    },
-    {
-      personId: "26",
-      name: "Britta Carlson",
-      dateOfBirth: "1978-03-03",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.PRESIDENT]
-    },
-    {
-      personId: "27",
-      name: "Patrik Grolimund",
-      dateOfBirth: "1980-08-19",
-      gender: GenderEL.M,
-      type: [PersonTypeEL.MEMBER, PersonTypeEL.COACH]
-    },
-    {
-      personId: "28",
-      name: "Sandra Starke",
-      dateOfBirth: "1993-07-31",
-      gender: GenderEL.F,
-      type: [PersonTypeEL.MEMBER, PersonTypeEL.PLAYER]
-    }
-  ];
+    // let personRecords = [
+    //   {
+    //     personId: "1",
+    //     name: "Manuel Neuer",
+    //     dateOfBirth: "1986-03-27",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "2",
+    //     name: "Antonio Rudiger",
+    //     dateOfBirth: "1993-03-03",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "3",
+    //     name: "Marcel Halstenberg",
+    //     dateOfBirth: "1991-09-27",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "4",
+    //     name: "Matthias Ginter",
+    //     dateOfBirth: "1994-01-19",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "5",
+    //     name: "Mats Hummels",
+    //     dateOfBirth: "1988-12-16",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "6",
+    //     name: "Joshua Kimmich",
+    //     dateOfBirth: "1995-02-08",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "7",
+    //     name: "Kai Havertz",
+    //     dateOfBirth: "1999-06-11",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "8",
+    //     name: "Toni Kroos",
+    //     dateOfBirth: "1990-01-04",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "9",
+    //     name: "Kevin Volland",
+    //     dateOfBirth: "1992-07-30",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "10",
+    //     name: "Serge Gnabry",
+    //     dateOfBirth: "1995-07-14",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "11",
+    //     name: "Timo Werner",
+    //     dateOfBirth: "1996-03-06",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "12",
+    //     name: "Joachim Löw",
+    //     dateOfBirth: "1960-02-03",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.COACH]
+    //   },
+    //   {
+    //     personId: "13",
+    //     name: "Merle Frohms",
+    //     dateOfBirth: "1995-01-28",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "14",
+    //     name: "Sophia Kleinherne",
+    //     dateOfBirth: "2000-04-12",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "15",
+    //     name: "Jana Feldkamp",
+    //     dateOfBirth: "1998-03-15",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "16",
+    //     name: "Leonie Maier",
+    //     dateOfBirth: "1992-09-29",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "17",
+    //     name: "Lena Sophie Oberdorf",
+    //     dateOfBirth: "2001-12-19",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "18",
+    //     name: "Lea Schuller",
+    //     dateOfBirth: "1997-11-12",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "19",
+    //     name: "Sydney Lohmann",
+    //     dateOfBirth: "2000-06-19",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "20",
+    //     name: "Svenja Huth",
+    //     dateOfBirth: "1991-01-25",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "21",
+    //     name: "Laura Benkarth",
+    //     dateOfBirth: "1992-10-14",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "22",
+    //     name: "Laura Freigang",
+    //     dateOfBirth: "1998-02-01",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "23",
+    //     name: "Tabea Wassmuth",
+    //     dateOfBirth: "1996-08-25",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PLAYER]
+    //   },
+    //   {
+    //     personId: "24",
+    //     name: "Martina Voss-Tecklenburg",
+    //     dateOfBirth: "1967-12-22",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.COACH]
+    //   },
+    //   {
+    //     personId: "25",
+    //     name: "Peter Peters",
+    //     dateOfBirth: "1965-11-10",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.PRESIDENT]
+    //   },
+    //   {
+    //     personId: "26",
+    //     name: "Britta Carlson",
+    //     dateOfBirth: "1978-03-03",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.PRESIDENT]
+    //   },
+    //   {
+    //     personId: "27",
+    //     name: "Patrik Grolimund",
+    //     dateOfBirth: "1980-08-19",
+    //     gender: GenderEL.M,
+    //     type: [PersonTypeEL.MEMBER, PersonTypeEL.COACH]
+    //   },
+    //   {
+    //     personId: "28",
+    //     name: "Sandra Starke",
+    //     dateOfBirth: "1993-07-31",
+    //     gender: GenderEL.F,
+    //     type: [PersonTypeEL.MEMBER, PersonTypeEL.PLAYER]
+    //   }
+    // ];
     console.log('Generating test data...');
-    await Promise.all( personRecords.map( d => Person.add( d)));
+    const response = await fetch( "../../test-data/persons.json");
+    const personRecords = await response.json();
+    // console.log(personRecords.map( d => d.personId));
+    await Promise.all( personRecords.map( d =>
+        Person.add( d.personId, d.name, d.dateOfBirth, d.gender, d.type)));
 
     console.log(`${personRecords.length} people saved.`);
   } catch (e) {
     console.error(`${e.constructor.name}: ${e.message}`);
   }
-};
 
+
+
+  // // save all person records
+  // await Promise.all( personRecords.map(
+  //     personRec => db.collection("persons").doc( personRec.personId).set( personRec)
+  // ));
+  // console.log(`${Object.keys( personRecords).length} persons saved.`);
+};
 // Clear test data
 Person.clearData = async function () {
   if (confirm("Do you really want to delete all person records?")) {
@@ -577,11 +746,20 @@ Person.clearData = async function () {
       await Promise.all( personDocSns.map(
           personDocSn => Person.destroy( personDocSn.id)
       ));
-      console.log(`${personDocSns.length} people deleted.`);
+      console.log(`${personDocSns.length} person records deleted.`);
     } catch (e) {
       console.error(`${e.constructor.name}: ${e.message}`);
     }
   }
+
+  //   // retrieve all person documents from Firestore
+  //   const personRecords = await Person.retrieveAll();
+  //   // delete all documents
+  //   await Promise.all( personRecords.map(
+  //       personRec => db.collection("persons").doc( personRec.personId).delete()));
+  //   // ... and then report that they have been deleted
+  //   console.log(`${Object.values( personRecords).length} persons deleted.`);
+  // }
 };
 
 /*******************************************

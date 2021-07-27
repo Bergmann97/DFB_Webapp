@@ -7,24 +7,31 @@
  */
 
 import { db } from "../c/initialize.mjs";
-import {isNonEmptyString, handleUserMessage} from "../../lib/util.mjs";
+import {createIsoDateString, isIntegerOrIntegerString, isNonEmptyString, handleUserMessage} from "../../lib/util.mjs";
 import {
     NoConstraintViolation,
     MandatoryValueConstraintViolation,
     RangeConstraintViolation,
     UniquenessConstraintViolation,
+    IntervalConstraintViolation,
+    ReferentialIntegrityConstraintViolation
 }
     from "../../lib/errorTypes.mjs";
+import Member from "./Member.mjs";
 
 /**
  * Constructor function for the class FootballAssociation
  */
 class FootballAssociation {
     // using a single record parameter with ES6 function parameter destructuring
-    constructor({assoId, name}) {
+    constructor({assoId, name, supAssociations, supAssociationIdRefs}) {
         // assign properties by invoking implicit setters
         this.assoId = assoId; // number (integer)
         this.name = name; // string
+
+        if (supAssociations || supAssociationIdRefs) {
+            this.supAssociations = supAssociations || supAssociationIdRefs;
+        }
     };
 
     get assoId() {
@@ -47,7 +54,8 @@ class FootballAssociation {
        Checks ID uniqueness constraint against the direct type of a FootballAssociation object
        */
     static async checkAssoIdAsId( assoId) {
-        let validationResult = FootballAssociation.checkAssoId( assoId);
+        console.log(assoId + "/type: " + typeof assoId);
+        let validationResult = FootballAssociation.checkAssoId( parseInt(assoId));
         if ((validationResult instanceof NoConstraintViolation)) {
             if (!assoId) {
                 validationResult = new MandatoryValueConstraintViolation(
@@ -64,6 +72,19 @@ class FootballAssociation {
         }
         return validationResult;
     };
+
+    static async checkAssoIdAsIdRef( id) {
+        var constraintViolation = FootballAssociation.checkAssoId( id);
+        if ((constraintViolation instanceof NoConstraintViolation) &&
+            id !== undefined) {
+            let assoDocSn = await db.collection("associations").doc( String(id)).get();
+            if (!assoDocSn.exists) {
+                constraintViolation = new ReferentialIntegrityConstraintViolation(
+                    "There is no football association record with this association ID!");
+            }
+        }
+        return constraintViolation;
+    }
 
     set assoId( assoId) {
         const validationResult = FootballAssociation.checkAssoId ( assoId);
@@ -97,6 +118,36 @@ class FootballAssociation {
         }
     };
 
+    get supAssociations() {
+        return this._supAssociations;
+    };
+    static async checkSupAssoIdAsIdRef( supAssociation_id) {
+        var constraintViolation = FootballAssociation.checkAssoId( supAssociation_id);
+        if ((constraintViolation instanceof NoConstraintViolation) && supAssociation_id) {
+            let assoDocSn = await db.collection("associations").doc( supAssociation_id.toString()).get();
+            if (!assoDocSn.exists) {
+                constraintViolation = new ReferentialIntegrityConstraintViolation(
+                    `There is no football association record with Association ID ${supAssociation_id}!`);
+            }
+        }
+        return constraintViolation;
+    };
+
+    static checkSupAssociation( supAssociation_id) {
+        var validationResult = null;
+        if (!supAssociation_id) {
+            // supAssociation(s) are optional
+            validationResult = new NoConstraintViolation();
+        } else {
+            // invoke foreign key constraint check
+            validationResult = FootballAssociation.checkSupAssoIdAsIdRef( supAssociation_id);
+        }
+        return validationResult;
+    };
+    set supAssociations( sa) {
+        this._supAssociations = sa;
+    }
+
 }
 /*********************************************************
  ***  Class-level ("static") storage management methods **
@@ -111,10 +162,17 @@ FootballAssociation.converter = {
             assoId: asso.assoId,
             name: asso.name
         };
+        if (asso.supAssociations) data.supAssociationIdRefs = asso.supAssociations;
         return data;
     },
     fromFirestore: function (snapshot, options) {
-        const data = snapshot.data( options);
+        const asso = snapshot.data( options);
+        const data = {
+            assoId: asso.assoId,
+            name: asso.name
+        };
+        if (asso.supAssociationIdRefs) data.supAssociations = asso.supAssociationIdRefs;
+
         return new FootballAssociation( data);
     }
 };
@@ -127,7 +185,7 @@ FootballAssociation.retrieve = async function (assoId) {
     try {
         const assoRec = (await db.collection("associations").doc( assoId)
             .withConverter( FootballAssociation.converter).get()).data();
-        console.log(`Football Association record (Association ID: "${assoRec.assoId}") retrieved.`);
+        if (assoRec) console.log(`Football Association record (Association ID: "${assoRec.assoId}") retrieved.`);
         return assoRec;
     } catch (e) {
         console.error(`Error retrieving football association record: ${e}`);
@@ -150,45 +208,98 @@ FootballAssociation.retrieveAll = async function (order) {
     }
 };
 
+/**
+ * Retrieve block of football association records
+ */
+FootballAssociation.retrieveBlock = async function (params) {
+    try {
+        let assosCollRef = db.collection("associations");
+        // set limit and order in query
+        assosCollRef = assosCollRef.limit( 11);
+        if (params.order) assosCollRef = assosCollRef.orderBy( params.order);
+        // set pagination 'startAt' cursor
+        if (params.cursor) {
+            assosCollRef = assosCollRef.startAt( params.cursor);
+        }
+        const assoRecords = (await assosCollRef.withConverter( FootballAssociation.converter)
+            .get()).docs.map( d => d.data());
+        console.log(`Block of football association records retrieved! (cursor: ${assoRecords[0][params.order]})`);
+        return assoRecords;
+    } catch (e) {
+        console.error(`Error retrieving all football association records: ${e}`);
+    }
+};
+
 
 /**
  *  Create a new football association record
  */
 FootballAssociation.add = async function (slots) {
-    let asso = null;
+    console.log(slots);
+    var validationResult = null,
+        asso = null;
+
     try {
         asso = new FootballAssociation(slots);
-        let validationResult = await FootballAssociation.checkAssoIdAsId( asso.assoId);
+        console.log(asso);
+        console.log(asso.assoId + "/type: " + typeof asso.assoId);
+        // invoke asynchronous ID/uniqueness check
+        validationResult = await FootballAssociation.checkAssoIdAsId( asso.assoId);
+        // let validationResult = await FootballAssociation.checkAssoIdAsId( asso.assoId);
+
         if (!validationResult instanceof NoConstraintViolation) {
             throw validationResult;
         }
+        const assoDocRef = db.collection("associations").doc( asso.assoId);
+        await assoDocRef.withConverter( FootballAssociation.converter).set( asso);
+        console.log(`Football Association record (Association ID: "${asso.assoId}") created!`);
     } catch( e) {
-        console.error(`${e.constructor.name}: ${e.message}`);
-        asso = null;
+        console.error(`Error creating football association record: ${e}`);
+        // asso = null;
     }
-    if (asso) {
-        try {
-            const assoDocRef = db.collection("associations").doc( asso.assoId);
-            await assoDocRef.withConverter( FootballAssociation.converter).set( asso);
-            console.log(`Football association record (Association ID: "${asso.assoId}") created.`);
-        } catch (e) {
-            console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-        }
-    }
+    // if (asso) {
+    //     try {
+    //         const assoDocRef = db.collection("associations").doc( asso.assoId);
+    //         await assoDocRef.withConverter( FootballAssociation.converter).set( asso);
+    //         console.log(`Football association record (Association ID: "${asso.assoId}") created.`);
+    //     } catch (e) {
+    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
+    //     }
+    // }
 };
 
 /**
  *  Update an existing football association record
  */
 FootballAssociation.update = async function (slots) {
-    var noConstraintViolated = true,
-        updatedSlots = {},
-        validationResult = null;
-    const assoDocRef = db.collection("associations").doc( slots.assoId);
+    const updatedSlots = {};
+    let validationResult = null,
+        assoRec = null,
+        assoDocRef = null;
+    // const assoDocRef = db.collection("associations").doc( slots.assoId);
     try {
-        const assoDocSns = await assoDocRef.withConverter( FootballAssociation.converter).get();
-        const assoBeforeUpdate = assoDocSns.data();
-        if (assoBeforeUpdate.name !== slots.name) {
+        // const assoDocSns = await assoDocRef.withConverter( FootballAssociation.converter).get();
+        // const assoBeforeUpdate = assoDocSns.data();
+        // retrieve up-to-date association record
+        assoDocRef = db.collection("associations").doc( slots.assoId);
+        const assoDocSn = await assoDocRef.withConverter(FootballAssociation.converter).get();
+        assoRec = assoDocSn.data();
+        // console.log(assoRec);
+
+        // if (assoBeforeUpdate.name !== slots.name) {
+        //     validationResult = FootballAssociation.checkName( slots.name);
+        //     if (validationResult instanceof NoConstraintViolation) {
+        //         updatedSlots.name = slots.name;
+        //     } else {
+        //         throw validationResult;
+        //     }
+        // }
+    } catch (e) {
+        console.log(`${e.constructor.name}: ${e.message}`);
+        // noConstraintViolated = false;
+    }
+    try {
+        if (assoRec.name !== slots.name) {
             validationResult = FootballAssociation.checkName( slots.name);
             if (validationResult instanceof NoConstraintViolation) {
                 updatedSlots.name = slots.name;
@@ -196,19 +307,30 @@ FootballAssociation.update = async function (slots) {
                 throw validationResult;
             }
         }
+        // console.log(assoRec.supAssociations);
+        let supAssociationIdRefs = assoRec.supAssociations;
+        if (slots.supAssociationIdRefsToAdd) {
+            supAssociationIdRefs = supAssociationIdRefs.concat( slots.supAssociationIdRefsToAdd.map( d => +d));
+        }
+        if (slots.supAssociationIdRefsToRemove) {
+            slots.supAssociationIdRefsToRemove = slots.supAssociationIdRefsToRemove.map( d => +d);
+            supAssociationIdRefs = supAssociationIdRefs.filter( d => !slots.supAssociationIdRefsToRemove.includes( d));
+        }
+        updatedSlots.supAssociationIdRefs = supAssociationIdRefs;
+
     } catch (e) {
-        console.log(`${e.constructor.name}: ${e.message}`);
-        noConstraintViolated = false;
+        console.error(`${e.constructor.name}: ${e.message}`);
     }
     let updatedProperties = Object.keys( updatedSlots);
-    if (noConstraintViolated) {
-        if (updatedProperties.length > 0) {
-            await assoDocRef.update( updatedSlots);
-            console.log(`Property(ies) "${updatedProperties.toString()}" modified for football association record (association ID: "${slots.assoId}"`);
-        } else {
-            console.log(`No property value changed for football association record (association ID: "${slots.assoId}")!`);
-        }
+    // console.log("assoId: " + slots.assoId + "/type: " + typeof slots.assoId);
+    // if (noConstraintViolated) {
+    if (updatedProperties.length > 0) {
+        await assoDocRef.withConverter( FootballAssociation.converter).update( updatedSlots);
+        console.log(`Property(ies) "${updatedProperties.toString()}" modified for football association record (Association ID: "${slots.assoId}")`);
+    } else {
+        console.log(`No property value changed for football association record (Association ID: "${slots.assoId}")!`);
     }
+    // }
 };
 
 /**
@@ -216,11 +338,38 @@ FootballAssociation.update = async function (slots) {
  */
 FootballAssociation.destroy = async function (assoId) {
     try {
-        await db.collection("associations").doc( assoId).delete();
-        console.log(`Football association record (Association ID: "${assoId}") deleted.`);
-    } catch( e) {
-        console.error(`Error when deleting football association record: ${e}`);
-        return;
+        const membersCollRef = db.collection("members"),
+            presidentsCollRef = db.collection("presidents"),
+            assosCollRef = db.collection("associations"),
+            presidentQrySn = presidentsCollRef.where("assoAssociation", "==", parseInt(assoId)),
+            memberQrySn = membersCollRef.where("assoAssociationIdRefs", "array-contains", assoId),
+            associatedPresidentDocSns = (await presidentQrySn.get()).docs,
+            associatedMemberDocSns = (await memberQrySn.get()).docs,
+            assoDocRef = assosCollRef.doc( assoId);
+
+        // initiate batch write
+        const batch = db.batch();
+        for (const am of associatedMemberDocSns) {
+            const memberDocRef = membersCollRef.doc( am.id);
+            // remove associated assoId from each Member record
+            batch.update( memberDocRef, {
+                assoAssociationIdRefs: firebase.firestore.FieldValue.arrayRemove( assoId)
+            });
+        }
+        for (const ap of associatedPresidentDocSns) {
+            const presidentDocRef = presidentsCollRef.doc( ap.id);
+            // remove associated football association from each president record
+            batch.update( presidentDocRef, {
+                assoAssociation: firebase.firestore.FieldValue.delete()
+            });
+        }
+
+        // delete football association record
+        batch.delete( assoDocRef);
+        batch.commit(); // finish batch write
+        console.log(`Football association record (Association ID: "${assoId}") deleted!`);
+    } catch (e) {
+        console.error(`Error deleting football association record: ${e}`);
     }
 };
 
@@ -230,9 +379,27 @@ FootballAssociation.destroy = async function (assoId) {
 // Create test data
 FootballAssociation.generateTestData = async function () {
     try {
+        // let assoRecords = [
+        //     {
+        //         assoId: "1",
+        //         name: "NORDDEUTSCHER FUSSBALL-VERBAND",
+        //         supAssociationIdRefs: []
+        //     },
+        //     {
+        //         assoId: "2",
+        //         name: "Schleswig-Holsteinischer Fußballverband",
+        //         supAssociationIdRefs: [1]
+        //     },
+        //     {
+        //         assoId: "3",
+        //         name: "Hamburger Fußball-Verband",
+        //         supAssociationIdRefs: [2]
+        //     },
+        // ];
         console.log('Generating test data...');
         const response = await fetch( "../../test-data/associations.json");
         const assoRecords = await response.json();
+        // console.log(assoRecords);
         await Promise.all( assoRecords.map( d => FootballAssociation.add( d)));
 
         console.log(`${assoRecords.length} football associations saved.`);
@@ -255,7 +422,7 @@ FootballAssociation.clearData = async function () {
             await Promise.all( assoDocSns.map(
                 assoDocSn => FootballAssociation.destroy( assoDocSn.id)
             ));
-            console.log(`${assoDocSns.length} football associations deleted.`);
+            console.log(`${assoDocSns.length} football association records deleted.`);
         } catch (e) {
             console.error(`${e.constructor.name}: ${e.message}`);
         }

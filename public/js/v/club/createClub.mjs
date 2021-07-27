@@ -1,21 +1,27 @@
 /**
  * @fileOverview  View methods for the use case "create football club"
- * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
+ * @authors Gerd Wagner & Juan-Francisco Reyes
  */
 import FootballClub from "../../m/FootballClub.mjs";
-import {GenderEL} from "../../m/Person.mjs";
+import Person, {GenderEL} from "../../m/Person.mjs";
 
 import {
+    undisplayAllSegmentFields,
+    displaySegmentFields,
     createChoiceWidget,
-    showProgressBar
+    fillSelectWithOptionsClub, showProgressBar, fillSelectWithOptions
 } from "../../../lib/util.mjs";
+import FootballAssociation from "../../m/FootballAssociation.mjs";
+import Coach from "../../m/Coach.mjs";
+import Player from "../../m/Player.mjs";
+import Member from "../../m/Member.mjs";
 
 /***************************************************************
  Declare variables for accessing UI elements
  ***************************************************************/
 const formEl = document.forms['Club'],
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
-    // selectAssoEl = formEl.selectAsso,
+    selectAssoEl = formEl.selectAsso,
     // selectCoachEl = formEl.selectCoach,
     // selectPlayersEl = formEl.selectPlayers,
     // selectMembersEl = formEl.selectMembers,
@@ -29,15 +35,23 @@ const formEl = document.forms['Club'],
 createChoiceWidget( genderFieldsetEl, "gender", [],
     "radio", GenderEL.labels);
 
-// // load all football association records
-// const assoRecords = await FootballAssociation.retrieveAll();
+
 // const coachRecords = await Coach.retrieveAll();
 // const playerRecords = await Player.retrieveAll();
 // const memberRecords = await Member.retrieveAll();
 //
-// // fillSelectWithOptions(selectAssoEl,
-// //     await FootballAssociation.retrieveAll().then(value=>value),
-// //     "assoId", "name");
+// fillSelectWithOptions(selectAssoEl,
+//     await FootballAssociation.retrieveAll().then(value=>value),
+//     "assoId", "name");
+// // load all football association records
+const assoRecords = await FootballAssociation.retrieveAll();
+for (const assoRec of assoRecords) {
+    const optionEl = document.createElement("option");
+    optionEl.text = assoRec.name;
+    optionEl.value = assoRec.assoId;
+
+    selectAssoEl.add( optionEl, null);
+}
 // // fillSelectWithOptions(selectCoachEl,
 // //     await Coach.retrieveAll().then(value=>value),
 // //     "personId", "name");
@@ -93,12 +107,12 @@ genderFieldsetEl.addEventListener("click", function () {
         (!genderFieldsetEl.getAttribute("data-value")) ?
             "A gender must be selected!":"" );
 });
-// selectAssoEl.addEventListener("click", function () {
-//     formEl.selectAsso.setCustomValidity(
-//         formEl.selectAsso.value.length > 0 ? "" :
-//             "No association selected!"
-//     );
-// });
+selectAssoEl.addEventListener("click", function () {
+    formEl.selectAsso.setCustomValidity(
+        formEl.selectAsso.value.length > 0 ? "" :
+            "No association selected!"
+    );
+});
 //
 // selectCoachEl.addEventListener("click", function () {
 //     formEl.selectCoach.setCustomValidity(
@@ -126,14 +140,17 @@ formEl.addEventListener( 'submit', function (e) {
     formEl.reset();
 });
 
+// set a handler for the event when the browser window/tab is closed
+// window.addEventListener("beforeunload", Person.saveAll);
+
 async function handleSaveButtonClickEvent() {
     const formEl = document.forms['Club']
 
     const slots = {
         clubId: formEl.clubId.value,
         name: formEl.name.value,
-        gender: genderFieldsetEl.getAttribute("data-value")
-        // association_id: formEl.selectAsso.value,
+        gender: genderFieldsetEl.getAttribute("data-value"),
+        association_id: parseInt(formEl.selectAsso.value),
         // coach_id: formEl.selectCoach.value,
         //
         // playerIdRefs: [],
@@ -147,7 +164,10 @@ async function handleSaveButtonClickEvent() {
     formEl.clubId.setCustomValidity(( await FootballClub.checkClubIdAsId(slots.clubId)).message);
     formEl.name.setCustomValidity( FootballClub.checkName( slots.name).message);
     formEl.gender[0].setCustomValidity( FootballClub.checkGender( slots.gender).message);
-    // formEl.association_id.setCustomValidity( FootballClub.checkAssociation( slots.association_id).message);
+    formEl.selectAsso.setCustomValidity(
+        (formEl.selectAsso.value.length > 0) ? "" : "No association selected!"
+    );
+    // formEl.association.setCustomValidity( FootballClub.checkAssociation( slots.association).message);
     // formEl.coach_id.setCustomValidity( FootballClub.checkCoach( slots.coach_id).message);
 
     // formEl.playerIdRefs[0].setCustomValidity(
@@ -161,7 +181,9 @@ async function handleSaveButtonClickEvent() {
         //     slots.playerIdRefs.push( opt.value);
         // }
         await FootballClub.add( slots);
+        selectAssoEl.innerHTML = "";
         formEl.reset();
     }
     showProgressBar( "hide");
 }
+// }
