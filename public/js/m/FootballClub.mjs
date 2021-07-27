@@ -6,25 +6,16 @@
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
 
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import {
-    createIsoDateString,
-    isIntegerOrIntegerString,
-    isNonEmptyString,
-    handleUserMessage,
-    dateToTimestamp
-} from "../../lib/util.mjs";
-import {
-    NoConstraintViolation,
-    MandatoryValueConstraintViolation,
-    RangeConstraintViolation,
-    UniquenessConstraintViolation,
-    IntervalConstraintViolation, ReferentialIntegrityConstraintViolation
-}
-    from "../../lib/errorTypes.mjs";
-import {GenderEL} from "./Person.mjs";
+import { isIntegerOrIntegerString, isNonEmptyString, handleUserMessage } from "../../lib/util.mjs";
+import { NoConstraintViolation, MandatoryValueConstraintViolation,
+    RangeConstraintViolation, UniquenessConstraintViolation,
+    ReferentialIntegrityConstraintViolation } from "../../lib/errorTypes.mjs";
+import { GenderEL } from "./Person.mjs";
 import FootballAssociation from "./FootballAssociation.mjs";
-import Player from "./Player.mjs";
 
 /**
  * Constructor function for the class FootballClub
@@ -38,22 +29,7 @@ class FootballClub {
         this.gender = gender; // GenderEL
 
         this.association = association || association_id;
-        // this._clubPlayers = {};
-        // this._clubCoaches = {};
-        // this._clubMembers = {};
     };
-
-    // get clubPlayers() {
-    //     return this._clubPlayers;
-    // }
-    // get clubCoaches() {
-    //     return this._clubCoaches;
-    // }
-    // get clubMembers() {
-    //     return this._clubMembers;
-    // }
-
-
 
     get clubId() {
         return this._clubId;
@@ -92,7 +68,6 @@ class FootballClub {
         }
         return validationResult;
     };
-
     static async checkClubIdAsIdRef( id) {
         var constraintViolation = FootballClub.checkClubId( id);
         if ((constraintViolation instanceof NoConstraintViolation) &&
@@ -103,14 +78,9 @@ class FootballClub {
                 constraintViolation = new ReferentialIntegrityConstraintViolation(
                     "There is no football club record with this club ID!");
             }
-            // if (!FootballClub.retrieve(String(id))) {
-            //     constraintViolation = new ReferentialIntegrityConstraintViolation(
-            //         "There is no football club record with this club ID!");
-            // }
         }
         return constraintViolation;
-    }
-
+    };
     set clubId( clubId) {
         const validationResult = FootballClub.checkClubId ( clubId);
         if (validationResult instanceof NoConstraintViolation) {
@@ -170,7 +140,7 @@ class FootballClub {
 
     get association() {
         return this._association;
-    }
+    };
     static async checkAssociation(association_id) {
         var validationResult = null;
         if (!association_id) {
@@ -181,22 +151,20 @@ class FootballClub {
             validationResult = await FootballAssociation.checkAssoIdAsIdRef( association_id);
         }
         return validationResult;
-    }
+    };
     set association(a) {
         this._association = a;
-    }
-
+    };
 }
+
 /*********************************************************
  ***  Class-level ("static") storage management methods **
  *********************************************************/
-
 /**
  *  Conversion between a FootballClub object and a corresponding Firestore document
  */
 FootballClub.converter = {
     toFirestore: function (club) {
-        console.log(club.association + "/type: " + typeof club.association);
         const data = {
             clubId: club.clubId,
             name: club.name,
@@ -278,7 +246,6 @@ FootballClub.add = async function (slots) {
         club = null;
     try {
         club = new FootballClub(slots);
-        console.log(club.clubId + "/type: " + typeof club.clubId);
         validationResult = await FootballClub.checkClubIdAsId( club.clubId);
         if (!validationResult instanceof NoConstraintViolation) {
             throw validationResult;
@@ -286,20 +253,9 @@ FootballClub.add = async function (slots) {
         const clubDocRef = db.collection("clubs").doc( club.clubId);
         await clubDocRef.withConverter( FootballClub.converter).set( club);
         console.log(`Football club record (Club ID: "${club.clubId}") created!`);
-        // await personDocRef.set( slots);
     } catch( e) {
         console.error(`${e.constructor.name}: ${e.message}`);
-        // club = null;
     }
-    // if (club) {
-    //     try {
-    //         const clubDocRef = db.collection("clubs").doc( club.clubId);
-    //         await clubDocRef.withConverter( FootballClub.converter).set( club);
-    //         console.log(`Football club record (Club ID: "${club.clubId}") created.`);
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    //     }
-    // }
 };
 
 /**
@@ -311,8 +267,6 @@ FootballClub.update = async function (slots) {
         clubRec = null,
         clubDocRef = null;
 
-    // const clubDocRef = db.collection("clubs").doc( slots.clubId);
-
     try {
         clubDocRef = db.collection("clubs").doc(slots.clubId);
         const clubDocSn = await clubDocRef.withConverter(FootballClub.converter).get();
@@ -322,8 +276,6 @@ FootballClub.update = async function (slots) {
     }
 
     try {
-        // const clubDocSns = await clubDocRef.withConverter( FootballClub.converter).get();
-        // const clubBeforeUpdate = clubDocSns.data();
         if (clubRec.name !== slots.name) {
             validationResult = FootballClub.checkName( slots.name);
             if (validationResult instanceof NoConstraintViolation) {
@@ -352,17 +304,15 @@ FootballClub.update = async function (slots) {
         }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
-        // noConstraintViolated = false;
     }
+
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
     if (updatedProperties.length > 0) {
         await clubDocRef.withConverter( FootballClub.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for football club record (Club ID: "${slots.clubId}")`);
     } else {
         console.log(`No property value changed for football club record (Club ID: "${slots.clubId}")!`);
     }
-    // }
 };
 
 /**
@@ -370,13 +320,12 @@ FootballClub.update = async function (slots) {
  */
 FootballClub.destroy = async function (clubId) {
     try {
-        // console.log(clubId + "/type: " + typeof clubId);
         const membersCollRef = db.collection("members"),
             playersCollRef = db.collection("players"),
             coachesCollRef = db.collection("coaches"),
             clubsCollRef = db.collection("clubs"),
-            playerQrySn = playersCollRef.where("assoClub", "==", parseInt(clubId)),
-            coachQrySn = coachesCollRef.where("assoClub", "==", parseInt(clubId)),
+            playerQrySn = playersCollRef.where("assoClub_id", "==", parseInt(clubId)),
+            coachQrySn = coachesCollRef.where("assoClub_id", "==", parseInt(clubId)),
             memberQrySn = membersCollRef.where("assoClubIdRefs", "array-contains", clubId),
             associatedPlayerDocSns = (await playerQrySn.get()).docs,
             associatedCoachDocSns = (await coachQrySn.get()).docs,
@@ -388,7 +337,6 @@ FootballClub.destroy = async function (clubId) {
         console.log(associatedMemberDocSns);
         for (const am of associatedMemberDocSns) {
             const memberDocRef = membersCollRef.doc( am.id);
-            console.log(memberDocRef);
             // remove associated clubId from each Member record
             batch.update( memberDocRef, {
                 assoClubIdRefs: firebase.firestore.FieldValue.arrayRemove( clubId)
@@ -408,7 +356,6 @@ FootballClub.destroy = async function (clubId) {
                 assoClub: firebase.firestore.FieldValue.delete()
             });
         }
-
         // delete football club record
         batch.delete( clubDocRef);
         batch.commit(); // finish batch write
@@ -416,15 +363,6 @@ FootballClub.destroy = async function (clubId) {
     } catch (e) {
         console.error(`Error deleting football club record: ${e}`);
     }
-
-
-    // try {
-    //     await db.collection("clubs").doc( clubId).delete();
-    //     console.log(`Football club record (Club ID: "${clubId}") deleted.`);
-    // } catch( e) {
-    //     console.error(`Error when deleting football club record: ${e}`);
-    //     return;
-    // }
 };
 
 /*******************************************

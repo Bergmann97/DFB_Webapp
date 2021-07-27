@@ -2,7 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Football Association: Delete</title>
+    <title>Football Association: Create</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#ffffff"/>
+
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.2/firebase-auth.js"></script>
@@ -11,16 +14,15 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
     <link rel="manifest" href="../manifest.json"/>
 
-    <script src="../js/v/association/deleteAssociation.mjs" type="module"></script>
+    <link rel="stylesheet" href="../css/normalize.css"/>
+    <link rel="stylesheet" href="../css/main.css"/>
 
+    <script src="../js/v/association/createAssociation.mjs" type="module"></script>
     <script type="module">
         import { setupUiByUserStatus } from "../js/v/authenticateUser.mjs";
 
         setupUiByUserStatus();
     </script>
-
-    <link rel="stylesheet" href="../css/normalize.css"/>
-    <link rel="stylesheet" href="../css/main.css"/>
 </head>
 <body>
 <header>
@@ -38,53 +40,57 @@
         <div class="dropdown">
             <button class="dropbtn">Person</button>
             <div class="dropdown-content">
-                <a href="../person/createPerson.html" class="disabled">Create</a>
+                <a href="../person/createPerson.html">Create</a>
                 <a href="../person/retrieveAndListAllPersons.html">List</a>
-                <a href="../person/updatePerson.html" class="disabled">Update</a>
-                <a href="../person/deletePerson.html" class="disabled">Delete</a>
+                <a href="../person/updatePerson.html">Update</a>
+                <a href="../person/deletePerson.html">Delete</a>
             </div>
         </div>
         <div class="dropdown">
             <button class="dropbtn">Club</button>
             <div class="dropdown-content">
-                <a href="../club/createClub.html" class="disabled">Create</a>
+                <a href="../club/createClub.html">Create</a>
                 <a href="../club/retrieveAndListAllClubs.html">List</a>
-                <a href="../club/updateClub.html" class="disabled">Update</a>
-                <a href="../club/deleteClub.html" class="disabled">Delete</a>
+                <a href="../club/updateClub.html">Update</a>
+                <a href="../club/deleteClub.html">Delete</a>
             </div>
         </div>
         <div class="dropdown">
             <button class="dropbtn">Association</button>
             <div class="dropdown-content">
-                <a href="createAssociation.html" class="disabled">Create</a>
+                <a href="createAssociation.html">Create</a>
                 <a href="retrieveAndListAllAssociations.html">List</a>
-                <a href="updateAssociation.html" class="disabled">Update</a>
-                <a href="deleteAssociation.html" class="disabled">Delete</a>
+                <a href="updateAssociation.html">Update</a>
+                <a href="deleteAssociation.html">Delete</a>
             </div>
         </div>
         <div class="dropdown">
             <button class="dropbtn">National Team</button>
             <div class="dropdown-content">
-                <a href="../nationalTeam/createNationalTeam.html" class="disabled">Create</a>
+                <a href="../nationalTeam/createNationalTeam.html">Create</a>
                 <a href="../nationalTeam/retrieveAndListAllNationalTeams.html">List</a>
-                <a href="../nationalTeam/updateNationalTeam.html" class="disabled">Update</a>
+                <a href="../nationalTeam/updateNationalTeam.html">Update</a>
             </div>
         </div>
     </div>
 </header>
 <main>
     <div class="wrapper clearfix">
-        <h2 class="intitle">Delete a Football Association</h2>
+        <h2 class="intitle">Create a new Football Association</h2>
         <form id="Association">
-            <div>
-                <label>Select association:
-                    <select name="selectAssociation">
-                        <option value=""> ---</option>
-                    </select>
-                </label>
+            <div class="field">
+                <label>Association ID: <input type="text" name="assoId"/></label>
+            </div>
+            <div class="field">
+                <label>Name: <input type="text" name="name"/></label>
+            </div>
+            <div class="widget">
+                <label for="crtSupAssos">Superior football <br>association:<span></span></label>
+                <div id="crtSupAssos" class="MultiSelectionWidget"></div>
             </div>
             <div>
-                <button name="commit" type="button">Delete</button>
+                <button name="commit" type="button">Save</button>
+                <progress hidden="hidden" max="100">%</progress>
             </div>
         </form>
         <a href="../index.html">← Back to main menu</a>

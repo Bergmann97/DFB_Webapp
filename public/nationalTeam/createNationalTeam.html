@@ -14,16 +14,15 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
     <link rel="manifest" href="../manifest.json"/>
 
+    <link rel="stylesheet" href="../css/normalize.css"/>
+    <link rel="stylesheet" href="../css/main.css"/>
+
     <script src="../js/v/nationalTeam/createNationalTeam.mjs" type="module"></script>
     <script type="module">
         import { setupUiByUserStatus } from "../js/v/authenticateUser.mjs";
 
         setupUiByUserStatus();
     </script>
-
-    <link rel="stylesheet" href="../css/normalize.css"/>
-    <link rel="stylesheet" href="../css/main.css"/>
-    <style></style>
 </head>
 <body>
 <header>
@@ -79,13 +78,9 @@
     <div class="wrapper clearfix">
         <h2 class="intitle">Create a National Team</h2>
         <form id="Team">
-            <!--            <div class="field">-->
-            <!--                <label>Team ID: <input type="text" name="teamId"/></label>-->
-            <!--            </div>-->
             <fieldset data-bind="gender">
                 <legend>Gender</legend>
             </fieldset>
-
             <div>
                 <label>Coach:
                     <select name="selectCoach">
@@ -97,12 +92,6 @@
                 <label for="crtPlayers">Players: <span></span></label>
                 <div id="crtPlayers" class="MultiSelectionWidget"></div>
             </div>
-            <!--            <div class="select-many">-->
-            <!--                <label>Players:-->
-            <!--                    <select name="selectPlayers" multiple="multiple"></select>-->
-            <!--                </label>-->
-            <!--            </div>-->
-
             <div class="saveBtn">
                 <button name="commit" type="button">Save</button>
                 <progress hidden="hidden" max="100">%</progress>

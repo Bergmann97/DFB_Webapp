@@ -5,15 +5,16 @@
  * @license This code is licensed under The Code Project Open License (CPOL), implying that the code is provided "as-is",
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
-import Person, {GenderEL, PersonTypeEL} from "./Person.mjs";
-import FootballClub from "./FootballClub.mjs";
-import {cloneObject, dateToTimestamp, handleUserMessage, isNonEmptyString, timestampToDate} from "../../lib/util.mjs";
-import {
-    MandatoryValueConstraintViolation,
-    NoConstraintViolation, RangeConstraintViolation,
-    ReferentialIntegrityConstraintViolation, UniquenessConstraintViolation
-} from "../../lib/errorTypes.mjs";
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
+import {dateToTimestamp, handleUserMessage, timestampToDate} from "../../lib/util.mjs";
+import { MandatoryValueConstraintViolation, NoConstraintViolation,
+    UniquenessConstraintViolation } from "../../lib/errorTypes.mjs";
+import Person from "./Person.mjs";
+import FootballClub from "./FootballClub.mjs";
 
 /**
  * Constructor function for the class Player
@@ -21,16 +22,10 @@ import { db } from "../c/initialize.mjs";
  */
 class Player extends Person {
     // using a single record parameter with ES6 function parameter destructuring
-    // constructor ({personId, name, dateOfBirth, gender, type, assoClub, assoClub_id}) {
     constructor ({personId, name, dateOfBirth, gender, type, assoClub, assoClub_id}) {
         super({personId, name, dateOfBirth, gender, type});  // invoke Person constructor
         // assign additional properties
-        // this.assoClub = assoClub;
-        // if (assoClub || assoClub_id) {
         this.assoClub = assoClub || assoClub_id;
-        // }
-        // derived inverse reference property (inverse of FootballClub::players)
-        // this._playedClubs = {};  // initialize as an empty map of Movie objects
     }
 
     static async checkPersonIdAsIdRef ( personId) {
@@ -51,10 +46,6 @@ class Player extends Person {
         }
         return validationResult;
     };
-    // get playedClubs() {
-    //     return this._playedClubs;
-    // }
-
 
     get assoClub() {
         return this._assoClub;
@@ -72,52 +63,8 @@ class Player extends Person {
     }
     set assoClub(ac) {
         this._assoClub = ac;
-        // if (!assoClub) {  // the assoClub reference is to be deleted
-        //     // delete the corresponding inverse reference from FootballClub::clubPlayers
-        //     delete this._assoClub.clubPlayers[this._personId];
-        //     // unset the assoClub property
-        //     delete this._assoClub;
-        // } else {
-        //     // assoClub can be an ID reference or an object reference
-        //     const assoClub_id = (typeof assoClub !== "object") ? assoClub : assoClub.clubId;
-        //     // const constraintViolation = Player.checkAssoClub(assoClub_id);
-        //     // console.log("[Player.checkAssoClub] constraintViolation: " + constraintViolation.then(value => value));
-        //     // if (constraintViolation instanceof NoConstraintViolation) {
-        //
-        //     if (this._assoClub) {
-        //         // delete the obsolete inverse reference in FootballClub::clubPlayers
-        //         delete this._assoClub.clubPlayers[this._personId];
-        //     }
-        //
-        //     // create the new assoClub reference
-        //     // this._assoClub = db.collection("clubs").where("array-contains", parseInt( assoClub_id));
-        //     this._assoClub = db.collection("clubs").doc(String(assoClub_id)).get();
-        //     console.log("this._assoClub: " + this._assoClub);
-        //
-        //     console.log(this._assoClub.clubPlayers);
-        //     // add the new inverse reference to FootballClub::clubPlayers
-        //     this._assoClub.clubPlayers[this._personId] = this;
-        //     // } else {
-        //     //     throw constraintViolation;
-        //     // }
-        // }
-
-        // const constraintViolation = Player.checkAssoClub( assoClub);
-        // if (constraintViolation instanceof NoConstraintViolation) {
-        //     this._assoClub = assoClub;
-        // } else {
-        //     throw constraintViolation;
-        // }
     }
-
 }
-/***********************************************
- *** Class-level ("static") properties **********
- ************************************************/
-// initially an empty collection (in the form of a map)
-// Player.instances = {};
-// add Player to the list of Person subtypes
-// Person.subtypes.push( Player);
 
 /*********************************************************
  *** Class-level ("static") storage management methods ****
@@ -151,7 +98,9 @@ Player.converter = {
     }
 };
 
-// Load a player record from Firestore
+/**
+ *  Load a player record
+ */
 Player.retrieve = async function (personId) {
     try {
         const playerRec = (await db.collection("players").doc( personId)
@@ -163,7 +112,9 @@ Player.retrieve = async function (personId) {
     }
 };
 
-// Load all player records from Firestore
+/**
+ *  Load all player records
+ */
 Player.retrieveAll = async function (order) {
     let playersCollRef = db.collection("players");
     try {
@@ -202,24 +153,12 @@ Player.retrieveBlock = async function (params) {
     }
 };
 
-// Player.retrieveAll = async function () {
-//     let playersCollRef = db.collection("players");
-//     try {
-//         const playerRecords = (await playersCollRef.withConverter( Player.converter)
-//             .get()).docs.map( d => d.data());
-//         console.log(`${playerRecords.length} player records retrieved.`);
-//         return playerRecords;
-//     } catch (e) {
-//         console.error(`Error retrieving player records: ${e}`);
-//     }
-// };
-
-// Create a Firestore document in the Firestore collection "players"
+/**
+ *  Create a new player record
+ */
 Player.add = async function (slots) {
     var validationResult = null,
         player = null;
-    // const personsCollRef = db.collection("persons"),
-    //     personDocRef = personsCollRef.doc( slots.personId);
     try {
         player = new Player(slots);
         validationResult = await Player.checkPersonIdAsId( player.personId);
@@ -229,40 +168,20 @@ Player.add = async function (slots) {
         const playerDocRef = db.collection("players").doc( player.personId);
         await playerDocRef.withConverter( Player.converter).set( player);
         console.log(`Player record (Person ID: "${player.personId}") created!`);
-        // await personDocRef.set( slots);
     } catch( e) {
         console.error(`${e.constructor.name}: ${e.message}`);
-        // person = null;
     }
-    // try {
-    //     player = new Player(slots);
-    //
-    //     let validationResult = await Person.checkPersonId( player.personId);
-    //     if (!validationResult instanceof NoConstraintViolation) {
-    //         throw validationResult;
-    //     }
-    // } catch( e) {
-    //     console.error(`${e.constructor.name}: ${e.message}`);
-    //     player = null;
-    // }
-    // if (player) {
-    //     try {
-    //         const playerDocRef = db.collection("players").doc( player.personId);
-    //         await playerDocRef.withConverter( Player.converter).set( player);
-    //         console.log(`Player record "${player.personId}" created.`);
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    //     }
-    // }
 };
-// Update a Firestore document in the Firestore collection "players"
+
+/**
+ *  Update an existing player record
+ */
 Player.update = async function (slots) {
     const updatedSlots = {};
     let validationResult = null,
         playerRec = null,
         playerDocRef = null;
 
-    // const playerDocRef = db.collection("players").doc( slots.personId);
     try {
         playerDocRef = db.collection("players").doc(slots.personId);
         const playerDocSn = await playerDocRef.withConverter(Player.converter).get();
@@ -272,9 +191,6 @@ Player.update = async function (slots) {
     }
 
     try {
-        // const playerDocSns = await playerDocRef.withConverter( Player.converter).get();
-        // const playerBeforeUpdate = playerDocSns.data();
-
         if (playerRec.name !== slots.name) {
             validationResult = Player.checkName( slots.name);
             if (validationResult instanceof NoConstraintViolation) {
@@ -283,16 +199,6 @@ Player.update = async function (slots) {
                 throw validationResult;
             }
         }
-
-        // if (playerBeforeUpdate.name !== slots.name) {
-        //     validationResult = Person.checkName( slots.name);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.name = slots.name;
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-
         if (playerRec.dateOfBirth !== slots.dateOfBirth) {
             validationResult = Player.checkDateOfBirth( slots.dateOfBirth);
             if (validationResult instanceof NoConstraintViolation) {
@@ -330,26 +236,25 @@ Player.update = async function (slots) {
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }
+
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
+
     if (updatedProperties.length > 0) {
         await playerDocRef.withConverter( Player.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for player record (Person ID: "${slots.personId}")`);
     } else {
         console.log(`No property value changed for player record (Person ID: "${slots.personId}")!`);
     }
-    // }
 };
 
-// Delete a Firestore document in the Firestore collection "players"
+/**
+ *  Delete a player record
+ */
 Player.destroy = async function (personId) {
     try {
-        // const playerRec = await Player.retrieve( personId);
-        // const clubRec = await FootballClub.retrieveAll();
-
         const clubsCollRef = db.collection("clubs"),
             playersCollRef = db.collection("players"),
-            clubQrySn = clubsCollRef.where("assoClub", "==", parseInt(personId)),
+            clubQrySn = clubsCollRef.where("assoClub_id", "==", parseInt(personId)),
             associatedClubDocSns = (await clubQrySn.get()).docs,
             playerDocRef = playersCollRef.doc( personId);
 
@@ -369,26 +274,6 @@ Player.destroy = async function (personId) {
     } catch (e) {
         console.error(`Error deleting player record: ${e}`);
     }
-
-    // if (playerRec.assoClub) {
-    //     // remove inverse reference from movie.director
-    //     delete playerRec.assoClub.clubPlayers[personId];
-    // }
-
-    // // delete all dependent football club records
-    // for (const clubId of Object.keys( playerRec.playedClubs)) {
-    //     let club = playerRec.playedClubs[clubId];
-    //     if (club.players[personId]) delete club.players[personId];
-    // }
-
-    //     await db.collection("players").doc( personId).delete();
-    //     console.log(`Player record with person ID '${personId}' deleted.`);
-    //
-    // } catch( e) {
-    //     console.error(`Error when deleting player record: ${e}`);
-    //     return;
-    // }
-
 };
 
 /*******************************************
@@ -593,6 +478,7 @@ Player.generateTestData = async function () {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
 };
+
 // Clear test data
 Player.clearData = async function () {
     if (confirm("Do you really want to delete all player records?")) {

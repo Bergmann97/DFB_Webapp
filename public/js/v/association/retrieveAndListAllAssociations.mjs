@@ -3,18 +3,16 @@
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 
-import FootballAssociation  from "../../m/FootballAssociation.mjs";
-import {
-    createChoiceWidget, createIsoDateString, createListFromMap, fillSelectWithOptions,
-    showProgressBar
-} from "../../../lib/util.mjs";
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
+import { showProgressBar } from "../../../lib/util.mjs";
+import { db } from "../../c/initialize.mjs";
 import FootballClub from "../../m/FootballClub.mjs";
-import {GenderEL} from "../../m/Person.mjs";
-import {db} from "../../c/initialize.mjs";
-import Coach from "../../m/Coach.mjs";
+import FootballAssociation  from "../../m/FootballAssociation.mjs";
 import President from "../../m/President.mjs";
-import Player from "../../m/Player.mjs";
 import Member from "../../m/Member.mjs";
+
 /**********************************************************************
  Declare variables for accessing UI elements
  **********************************************************************/
@@ -34,6 +32,7 @@ selectOrderEl.addEventListener("change", async function (e) {
     // invoke list with order selected
     await renderList( e.target.value);
 });
+
 /***************************************************************
  Render list of all football association records
  ***************************************************************/
@@ -45,7 +44,6 @@ async function renderList( order) {
         presidentsCollRef = db.collection("presidents"),
         membersCollRef = db.collection("members"),
         clubsCollRef = db.collection("clubs");
-    // assosCollRef = db.collection("associations");
 
     // for each football association, create a table row with a cell for each attribute
     for (let asso of assoRecords) {
@@ -70,24 +68,16 @@ async function renderList( order) {
         } else {
             row.insertCell().textContent = "";
         }
-        // row.insertCell().textContent = asso.supAssociations?
-        //     asso.supAssociations.length : "0";
-        // console.log(asso);
-        // console.log(associatedPresidentDocSns);
-        // console.log(associatedPresidentDocSns.length);
+
         if (associatedPresidentDocSns.length > 0) {
             for (const ap of associatedPresidentDocSns) {
-                console.log(ap.id + "/type: " + typeof ap.id);
                 if (ap) {
-                    console.log("AP");
                     row.insertCell().textContent = await President.retrieve(String(ap.id)).then(value => value.name)
                 }
-                // row.insertCell().textContent = ap.id ? await President.retrieve(String(ap.id)).then(value => value.name) : "";
             }
         } else {
             row.insertCell().textContent = "";
         }
-
 
         const assoMembers = [];
         for (const am of associatedMemberDocSns) {
@@ -97,6 +87,7 @@ async function renderList( order) {
         for (const ac of associatedClubDocSns) {
             assoClubs.push(ac.id);
         }
+
         const assoMembersName = [];
         for (const m of assoMembers) {
             assoMembersName.push(await Member.retrieve(String(m)).then(value => value.name));
@@ -106,21 +97,21 @@ async function renderList( order) {
             assoClubsName.push(await FootballClub.retrieve(String(c)).then(value => value.name));
         }
 
-        if (assoMembersName.length > 0) {
-            row.insertCell().innerHTML = '<ul><li>' + assoMembersName.join("</li><li>"); + '</li></ul>';
+        // if (assoMembersName.length > 0) {
+        //     row.insertCell().innerHTML = '<ul><li>' + assoMembersName.join("</li><li>"); + '</li></ul>';
+        //
+        // } else {
+        //     row.insertCell().textContent = "";
+        // }
+        row.insertCell().textContent = assoMembers.length > 0 ? assoMembers.length : "0";
 
-        } else {
-            row.insertCell().textContent = "";
-        }
-        // row.insertCell().textContent = assoMembers.length > 0 ? assoMembers.length : "0";
-
-        if (assoClubsName.length > 0) {
-            row.insertCell().innerHTML = '<ul><li>' + assoClubsName.join("</li><li>"); + '</li></ul>';
-
-        } else {
-            row.insertCell().textContent = "";
-        }
-        // row.insertCell().textContent = assoClubs.length > 0 ? assoClubs.length : "0";
+        // if (assoClubsName.length > 0) {
+        //     row.insertCell().innerHTML = '<ul><li>' + assoClubsName.join("</li><li>"); + '</li></ul>';
+        //
+        // } else {
+        //     row.insertCell().textContent = "";
+        // }
+        row.insertCell().textContent = assoClubs.length > 0 ? assoClubs.length : "0";
 
 
     }

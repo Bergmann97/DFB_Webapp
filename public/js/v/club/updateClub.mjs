@@ -2,11 +2,14 @@
  * @fileOverview  View methods for the use case "update football club"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
+import { GenderEL } from "../../m/Person.mjs";
+import { createChoiceWidget, fillSelectWithOptions } from "../../../lib/util.mjs";
 import FootballClub from "../../m/FootballClub.mjs";
-import {GenderEL} from "../../m/Person.mjs";
-import {createChoiceWidget, fillSelectWithOptions} from "../../../lib/util.mjs";
 import FootballAssociation from "../../m/FootballAssociation.mjs";
-import Player from "../../m/Player.mjs";
 
 /***************************************************************
  Load data
@@ -20,9 +23,6 @@ const formEl = document.forms["Club"],
     selectClubEl = formEl.selectClub,
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
     selectAssoEl = formEl.selectAsso,
-    // selectCoachEl = formEl.selectCoach,
-    // selectPlayersEl = document.getElementById("players"),
-    // selectMembersEl = document.getElementById("members"),
     updateButton = formEl.commit;
 
 /***************************************************************
@@ -31,12 +31,10 @@ const formEl = document.forms["Club"],
 let cancelSyncDBwithUI = null;
 
 /***************************************************************
- Set up (choice) widgets
+ Set up selection lists and widgets
  ***************************************************************/
 // set up the football club selection list
 fillSelectWithOptions( selectClubEl, clubRecords, {valueProp:"clubId", displayProp:"name"});
-
-
 
 // when a football club is selected, fill the form with its data
 selectClubEl.addEventListener("change", async function () {
@@ -58,7 +56,6 @@ selectClubEl.addEventListener("change", async function () {
         formEl.clubId.value = clubRec.clubId;
         formEl.name.value = clubRec.name;
         selectAssoEl.value = await FootballAssociation.retrieve(String(clubRec.association)).then(value => value.assoId);
-
 
         // set up the gender radio button group
         createChoiceWidget( genderFieldsetEl, "gender",
@@ -95,7 +92,6 @@ selectAssoEl.addEventListener("click", function () {
 /******************************************************************
  Add further event listeners, especially for the save/delete button
  ******************************************************************/
-
 // Set an event handler for the submit/save button
 updateButton.addEventListener("click", handleSubmitButtonClickEvent);
 // neutralize the submit event
@@ -121,12 +117,14 @@ async function handleSubmitButtonClickEvent() {
         gender: genderFieldsetEl.getAttribute("data-value"),
         association: parseInt(formEl.selectAsso.value)
     };
+
     // set error messages in case of constraint violations
     formEl.name.setCustomValidity( FootballClub.checkName( slots.name).message);
     formEl.gender[0].setCustomValidity( FootballClub.checkGender( slots.gender).message);
     formEl.selectAsso.setCustomValidity(
         (formEl.selectAsso.value.length > 0) ? "" : "No association selected!"
     );
+
     if (formEl.checkValidity()) {
         await FootballClub.update(slots);
         // update the selection list option

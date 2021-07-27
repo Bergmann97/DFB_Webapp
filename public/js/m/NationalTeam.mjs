@@ -6,17 +6,14 @@
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
 
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import {createIsoDateString, isIntegerOrIntegerString, isNonEmptyString, handleUserMessage} from "../../lib/util.mjs";
-import {
-    NoConstraintViolation,
-    MandatoryValueConstraintViolation,
-    RangeConstraintViolation,
-    UniquenessConstraintViolation,
-    IntervalConstraintViolation
-}
-    from "../../lib/errorTypes.mjs";
-import {GenderEL} from "./Person.mjs";
+import { isIntegerOrIntegerString, handleUserMessage} from "../../lib/util.mjs";
+import { NoConstraintViolation, MandatoryValueConstraintViolation,
+    RangeConstraintViolation, UniquenessConstraintViolation } from "../../lib/errorTypes.mjs";
+import { GenderEL } from "./Person.mjs";
 import Player from "./Player.mjs";
 import Coach from "./Coach.mjs";
 
@@ -26,60 +23,11 @@ import Coach from "./Coach.mjs";
 class NationalTeam {
     // using a single record parameter with ES6 function parameter destructuring
     constructor({gender, coach, coach_id, players, playerIdRefs}) {
-        // constructor({gender}) {
         // assign properties by invoking implicit setters
-        // this.teamId = teamId; // number (integer)
         this.gender = gender; // GenderEL
         this.coach = coach || coach_id; // Coach
-        this.players = players || playerIdRefs;
+        this.players = players || playerIdRefs; // Player
     };
-
-    // get teamId() {
-    //     return this._teamId;
-    // };
-    // static checkTeamId(teamId) {
-    //     if (!teamId) {
-    //         return new NoConstraintViolation();  // may be optional as an IdRef
-    //     } else {
-    //         // convert to integer
-    //         teamId = parseInt( teamId);
-    //         if (isNaN( teamId) || !Number.isInteger( teamId) || teamId < 1) {
-    //             return new RangeConstraintViolation("The Team ID must be a positive integer!");
-    //         } else {
-    //             return new NoConstraintViolation();
-    //         }
-    //     }
-    // };
-    // /*
-    //    Checks ID uniqueness constraint against the direct type of a NationalTeam object
-    //    */
-    // static async checkTeamIdAsId( teamId) {
-    //     let validationResult = NationalTeam.checkTeamId( teamId);
-    //     if ((validationResult instanceof NoConstraintViolation)) {
-    //         if (!teamId) {
-    //             validationResult = new MandatoryValueConstraintViolation(
-    //                 "A value for the Team ID must be provided!");
-    //         } else {
-    //             let teamDocSn = await db.collection("nationalTeams").doc( teamId).get();
-    //             if (teamDocSn.exists) {
-    //                 validationResult = new UniquenessConstraintViolation(
-    //                     "There is already a national team record with this Team ID!");
-    //             } else {
-    //                 validationResult = new NoConstraintViolation();
-    //             }
-    //         }
-    //     }
-    //     return validationResult;
-    // };
-    //
-    // set teamId( teamId) {
-    //     const validationResult = NationalTeam.checkTeamId ( teamId);
-    //     if (validationResult instanceof NoConstraintViolation) {
-    //         this._teamId = teamId;
-    //     } else {
-    //         throw validationResult;
-    //     }
-    // };
 
     get gender() {
         return this._gender;
@@ -98,7 +46,6 @@ class NationalTeam {
         }
     };
     static async checkGenderAsId( gender) {
-        console.log("gender: " + gender + "/type: " + typeof gender);
         let validationResult = NationalTeam.checkGender( parseInt(gender));
         if ((validationResult instanceof NoConstraintViolation)) {
             if (!gender) {
@@ -106,13 +53,10 @@ class NationalTeam {
                     "A value for the gender must be provided!");
             } else {
                 let teamDocSn = await db.collection("nationalTeams").doc( String(gender)).get();
-                // console.log(teamDocSn);
                 if (teamDocSn.exists) {
-                    // console.log("exists");
                     validationResult = new UniquenessConstraintViolation(
                         "There is already a national team record with this gender!");
                 } else {
-                    // console.log("NOT exists");
                     validationResult = new NoConstraintViolation();
                 }
             }
@@ -157,7 +101,6 @@ class NationalTeam {
         } else {
             // invoke foreign key constraint check
             validationResult = await Player.checkPersonIdAsIdRef( String(player_id));
-            console.log(validationResult.message);
         }
         return validationResult;
     };
@@ -168,7 +111,6 @@ class NationalTeam {
 /*********************************************************
  ***  Class-level ("static") storage management methods **
  *********************************************************/
-
 /**
  *  Conversion between a NationalTeam object and a corresponding Firestore document
  */
@@ -180,7 +122,6 @@ NationalTeam.converter = {
             coach_id : team.coach,
             playerIdRefs: team.players
         };
-        console.log(data);
         return data;
     },
     fromFirestore: function (snapshot, options) {
@@ -201,15 +142,12 @@ NationalTeam.retrieve = async function (gender) {
     try {
         const teamRec = (await db.collection("nationalTeams").doc( gender)
             .withConverter( NationalTeam.converter).get()).data();
-        // console.log(gender + "/type: " + typeof gender);
-        // console.log(GenderEL.M + "/type: " + typeof GenderEL.M);
 
         if (gender === GenderEL.M) {
             console.log(`National team record (Men) retrieved.`);
         } else if (gender === GenderEL.F) {
             console.log(`National team record (Female) retrieved.`);
         }
-        // console.log(`National team record (Team ID: "${teamRec.teamId}") retrieved.`);
         return teamRec;
     } catch (e) {
         console.error(`Error retrieving national team record: ${e}`);
@@ -238,19 +176,12 @@ NationalTeam.add = async function (slots) {
         team = null;
     try {
         team = new NationalTeam(slots);
-        console.log(slots);
-        console.log(team.gender + "/type: " + typeof team.gender);
-        // console.log(team.coach + "/type: " + typeof team.coach);
-        // console.log(GenderEL.M + "/type: " + typeof GenderEL.M);
         validationResult = await NationalTeam.checkGenderAsId( String(team.gender));
-        // console.log(validationResult.message);
-        // console.log(validationResult);
+
         if (!validationResult instanceof NoConstraintViolation) {
-            // console.log("VALIDATION!");
             throw validationResult;
         }
         const teamDocRef = db.collection("nationalTeams").doc( String(team.gender));
-        // console.log(teamDocRef);
         await teamDocRef.withConverter( NationalTeam.converter).set( team);
 
         if (team.gender === GenderEL.M) {
@@ -276,13 +207,11 @@ NationalTeam.update = async function (slots) {
         teamDocRef = db.collection("nationalTeams").doc( String(slots.gender));
         const teamDocSns = await teamDocRef.withConverter( NationalTeam.converter).get();
         teamRec = teamDocSns.data();
-
-        console.log(teamRec);
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }
-    try {
 
+    try {
         if (slots.coach_id && teamRec.coach !== slots.coach_id) {
             validationResult = await NationalTeam.checkCoach( slots.coach_id);
             if (validationResult instanceof NoConstraintViolation) {
@@ -293,10 +222,8 @@ NationalTeam.update = async function (slots) {
         } else if (!slots.coach_id && teamRec.coach !== undefined) {
             updatedSlots.coach_id = firebase.firestore.FieldValue.delete();
         }
-        let playerIdRefs = teamRec.players;
 
-        console.log(slots.playerIdRefsToRemove);
-        console.log(slots.playerIdRefsToAdd);
+        let playerIdRefs = teamRec.players;
 
         if (slots.playerIdRefsToAdd) {
             playerIdRefs = playerIdRefs.concat( slots.playerIdRefsToAdd.map( d => +d));
@@ -306,17 +233,13 @@ NationalTeam.update = async function (slots) {
             playerIdRefs = playerIdRefs.filter( d => !slots.playerIdRefsToRemove.includes( d));
         }
         updatedSlots.playerIdRefs = playerIdRefs;
-        console.log(playerIdRefs);
-        console.log(updatedSlots);
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }
+
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
     if (updatedProperties.length > 0) {
         await teamDocRef.withConverter( NationalTeam.converter).update( updatedSlots);
-
-        // console.log(gender + "/type: " + typeof gender);
 
         if (parseInt(slots.gender) === GenderEL.M) {
             console.log(`Property(ies) "${updatedProperties.toString()}" modified for national team (Men) record"`);
@@ -326,7 +249,6 @@ NationalTeam.update = async function (slots) {
     } else {
         console.log(`No property value changed for national team record!`);
     }
-    // }
 };
 
 /**
@@ -373,6 +295,7 @@ NationalTeam.generateTestData = async function () {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
 };
+
 // Clear test data
 NationalTeam.clearData = async function () {
     if (confirm("Do you really want to delete all national team records?")) {

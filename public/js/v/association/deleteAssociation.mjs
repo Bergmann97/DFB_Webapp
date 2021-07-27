@@ -2,6 +2,7 @@
  * @fileOverview  Contains various view functions for the use case "delete football association"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
+
 /***************************************************************
  Import classes, datatypes and utility procedures
  ***************************************************************/
@@ -21,9 +22,8 @@ const formEl = document.forms["Association"],
     selectAssoEl = formEl["selectAssociation"];
 
 /***************************************************************
- Set up (choice) widgets
+ Set up selection lists
  ***************************************************************/
-// set up the football association selection list
 fillSelectWithOptions( selectAssoEl, assoRecords,
     {valueProp:"assoId", displayProp:"name"});
 

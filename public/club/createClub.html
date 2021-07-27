@@ -14,15 +14,15 @@
     <link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
     <link rel="manifest" href="../manifest.json"/>
 
+    <link rel="stylesheet" href="../css/normalize.css"/>
+    <link rel="stylesheet" href="../css/main.css"/>
+
     <script src="../js/v/club/createClub.mjs" type="module"></script>
     <script type="module">
         import { setupUiByUserStatus } from "../js/v/authenticateUser.mjs";
 
         setupUiByUserStatus();
     </script>
-
-    <link rel="stylesheet" href="../css/normalize.css"/>
-    <link rel="stylesheet" href="../css/main.css"/>
 </head>
 <body>
 <header>
@@ -87,7 +87,6 @@
             <fieldset data-bind="gender">
                 <legend>Gender</legend>
             </fieldset>
-
             <div>
                 <label>Association:
                     <select name="selectAsso">
@@ -95,24 +94,6 @@
                     </select>
                 </label>
             </div>
-            <!--            <div>-->
-            <!--                <label>Coach:-->
-            <!--                    <select name="selectCoach">-->
-            <!--                        <option value=""> -&#45;&#45;</option>-->
-            <!--                    </select>-->
-            <!--                </label>-->
-            <!--            </div>-->
-            <!--            <div class="select-many">-->
-            <!--                <label>Players:-->
-            <!--                    <select name="selectPlayers" multiple="multiple"></select>-->
-            <!--                </label>-->
-            <!--            </div>-->
-            <!--            <div class="select-many">-->
-            <!--                <label>Members:-->
-            <!--                    <select name="selectMembers" multiple="multiple"></select>-->
-            <!--                </label>-->
-            <!--            </div>-->
-
             <div>
                 <button name="commit" type="button">Save</button>
                 <progress hidden="hidden" max="100">%</progress>

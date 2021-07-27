@@ -1,19 +1,17 @@
 /**
- * @fileOverview  Contains various view functions for the use case deletePerson
+ * @fileOverview  Contains various view functions for the use case "delete person"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
+
 /***************************************************************
  Import classes, datatypes and utility procedures
  ***************************************************************/
-
+import { fillSelectWithOptions } from "../../../lib/util.mjs";
 import Person from "../../m/Person.mjs";
 import Member from "../../m/Member.mjs";
 import Player from "../../m/Player.mjs";
 import Coach from "../../m/Coach.mjs";
 import President from "../../m/President.mjs";
-
-import { fillSelectWithOptions } from "../../../lib/util.mjs";
-import FootballClub from "../../m/FootballClub.mjs";
 
 /***************************************************************
  Load data
@@ -28,17 +26,10 @@ const formEl = document.forms["Person"],
     selectPersonEl = formEl["selectPerson"];
 
 /***************************************************************
- Set up (choice) widgets
+ Set up selection lists
  ***************************************************************/
-// set up the person selection list
 fillSelectWithOptions( selectPersonEl, personRecords,
     {valueProp:"personId", displayProp:"name"});
-// for (const personRec of personRecords) {
-//     const optionEl = document.createElement("option");
-//     optionEl.text = personRec.name;
-//     optionEl.value = personRec.personId;
-//     selectPersonEl.add( optionEl, null);
-// }
 
 /******************************************************************
  Add further event listeners, especially for the save/delete button
@@ -52,12 +43,8 @@ const playerRecords = await Player.retrieveAll().then(value=>value);
 const coachRecords = await Coach.retrieveAll().then(value=>value);
 const presidentRecords = await President.retrieveAll().then(value=>value);
 
-
-
-// },
-// Event handler for deleting a book
+// Event handler for deleting a person
 async function handleDeleteButtonClickEvent() {
-    // const selectPersonEl = document.forms['Person'].selectPerson;
     const personId = selectPersonEl.value;
 
     if (!personId) return;
@@ -89,4 +76,3 @@ async function handleDeleteButtonClickEvent() {
         selectPersonEl.remove( selectPersonEl.selectedIndex);
     }
 }
-// }

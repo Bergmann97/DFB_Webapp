@@ -1,18 +1,16 @@
 /**
- * @fileOverview  View methods for the use case "update football club"
+ * @fileOverview  View methods for the use case "update national team"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
-import NationalTeam from "../../m/NationalTeam.mjs";
-import {GenderEL} from "../../m/Person.mjs";
-import {
-    createChoiceWidget,
-    createMultiSelectionWidget,
-    fillSelectWithOptions,
-    fillSelectWithOptionsGender
-} from "../../../lib/util.mjs";
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
+import { GenderEL } from "../../m/Person.mjs";
+import { createChoiceWidget, createMultiSelectionWidget,
+    fillSelectWithOptionsGender } from "../../../lib/util.mjs";
 import Coach from "../../m/Coach.mjs";
-import Member from "../../m/Member.mjs";
-import President from "../../m/President.mjs";
+import NationalTeam from "../../m/NationalTeam.mjs";
 
 /***************************************************************
  Load data
@@ -27,16 +25,17 @@ const formEl = document.forms["NationalTeam"],
     selectTeamEl = formEl.selectTeam,
     selectCoachEl = formEl.selectCoach,
     playersUpWidget = formEl.querySelector(".MultiSelectionWidget"),
-    // selectPlayersEl = document.getElementById("players"),
     updateButton = formEl.commit;
+
 formEl.reset();
+
 /***************************************************************
  Initialize subscription to DB-UI synchronization
  ***************************************************************/
 let cancelSyncDBwithUI = null;
 
 /***************************************************************
- Set up (choice) widgets
+ Set up selection lists and widgets
  ***************************************************************/
 // set up the national team selection list
 fillSelectWithOptionsGender( selectTeamEl, teamRecords, "gender");
@@ -49,7 +48,6 @@ for (const coachRecord of coachRecords) {
 
     selectCoachEl.add( optionEl, null);
 }
-
 
 // when a national team is selected, fill the form with its data
 selectTeamEl.addEventListener("change", async function () {
@@ -86,10 +84,6 @@ selectTeamEl.addEventListener("change", async function () {
 /***************************************************************
  Add event listeners for responsive validation
  ***************************************************************/
-// genderFieldsetEl.addEventListener("click", function () {
-//     formEl.gender[0].setCustomValidity(
-//         (!genderFieldsetEl.getAttribute("data-value")) ? "A gender must be selected!":"" );
-// });
 selectCoachEl.addEventListener("click", function () {
     formEl.selectCoach.setCustomValidity(
         formEl.selectCoach.value.length > 0 ? "" :
@@ -100,21 +94,18 @@ selectCoachEl.addEventListener("click", function () {
 /******************************************************************
  Add further event listeners, especially for the save/delete button
  ******************************************************************/
-
 // Set an event handler for the submit/save button
 updateButton.addEventListener("click", handleSubmitButtonClickEvent);
 // neutralize the submit event
 formEl.addEventListener( "submit", function (e) {
     e.preventDefault();
 });
+
 // Set event cancel of DB-UI sync when the browser window/tab is closed
 window.addEventListener("beforeunload", function () {
     cancelSyncDBwithUI;
 });
 
-/**
- * check data and invoke update
- */
 async function handleSubmitButtonClickEvent() {
     const formEl = document.forms["NationalTeam"],
         selectTeamEl = formEl.selectTeam,
@@ -125,12 +116,9 @@ async function handleSubmitButtonClickEvent() {
     const slots = {
         gender: parseInt(selectTeamEl.value),
         coach_id: parseInt(formEl.selectCoach.value)
-        // gender: genderFieldsetEl.getAttribute("data-value")
     };
 
     // set error messages in case of constraint violations
-    // formEl.gender[0].setCustomValidity( NationalTeam.checkGender( slots.gender).message);
-
     formEl.selectCoach.setCustomValidity(
         (formEl.selectCoach.value.length > 0) ? "" : "No coach selected!"
     );
@@ -152,8 +140,7 @@ async function handleSubmitButtonClickEvent() {
     if (playerIdRefsToAdd.length > 0) {
         slots.playerIdRefsToAdd = playerIdRefsToAdd;
     }
-    /* MISSING CODE */
-    // add event listeners for responsive validation
+
     if (slots.playerIdRefsToAdd) {
         for (const p of slots.playerIdRefsToAdd) {
             let responseValidation = await NationalTeam.checkPlayer( p);
@@ -164,7 +151,6 @@ async function handleSubmitButtonClickEvent() {
         }
     }
 
-
     if (formEl.checkValidity()) {
         let cntRemovedPlayer = 0;
         for (const playerItemEl of playersListEl.children) {
@@ -172,16 +158,16 @@ async function handleSubmitButtonClickEvent() {
                 cntRemovedPlayer += 1;
             }
         }
-        console.log(cntRemovedPlayer + "/type: " + typeof cntRemovedPlayer);
-        console.log(playersListEl.children.length - parseInt(cntRemovedPlayer));
+
         if (playersListEl.children.length - parseInt(cntRemovedPlayer) >= 11) {
             await NationalTeam.update(slots);
+
             playersListEl.innerHTML = "";
             selectTeamEl.options[selectTeamEl.selectedIndex].text = GenderEL.enumLitNames[slots.gender - 1];
             formEl.reset();
+
         } else{
             alert("At least 11 players must be selected!");
         }
-
     }
 }

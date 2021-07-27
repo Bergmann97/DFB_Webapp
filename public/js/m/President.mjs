@@ -5,20 +5,15 @@
  * @license This code is licensed under The Code Project Open License (CPOL), implying that the code is provided "as-is",
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import Person, {GenderEL, PersonTypeEL} from "./Person.mjs";
-// import FootballClub from "./FootballClub.mjs";
-import {cloneObject, handleUserMessage, isNonEmptyString,
-    dateToTimestamp, timestampToDate} from "../../lib/util.mjs";
-import {
-    MandatoryValueConstraintViolation,
-    NoConstraintViolation, RangeConstraintViolation,
-    ReferentialIntegrityConstraintViolation
-} from "../../lib/errorTypes.mjs";
+import { handleUserMessage, dateToTimestamp, timestampToDate} from "../../lib/util.mjs";
+import { MandatoryValueConstraintViolation, NoConstraintViolation } from "../../lib/errorTypes.mjs";
+import Person from "./Person.mjs";
 import FootballAssociation from "./FootballAssociation.mjs";
-import Player from "./Player.mjs";
-// import FootballClub from "./FootballClub.mjs";
-// import Player from "./Player.mjs";
 
 /**
  * Constructor function for the class President
@@ -28,8 +23,7 @@ class President extends Person {
     // using a single record parameter with ES6 function parameter destructuring
     constructor ({personId, name, dateOfBirth, gender, type, assoAssociation, assoAssociation_id}) {
         super({personId, name, dateOfBirth, gender, type});  // invoke Person constructor
-        // assign additional properties
-        // this.agent = agent;
+
         this.assoAssociation = assoAssociation || assoAssociation_id;
     }
 
@@ -49,27 +43,8 @@ class President extends Person {
     }
     set assoAssociation(aa) {
         this._assoAssociation = aa;
-        // const constraintViolation = President.checkAssoAssociation( a);
-        // if (constraintViolation instanceof NoConstraintViolation) {
-        //     this._assoAssociation = a;
-        // } else {
-        //     throw constraintViolation;
-        // }
     }
-
-    // toString() {
-    //     var memberStr = `Member{ person ID: ${this.personId}, name: ${this.name}`;
-    //     memberStr += `, association: ${this.association}`;
-    //     return `${memberStr}}`;
-    // }
 }
-/***********************************************
- *** Class-level ("static") properties **********
- ************************************************/
-// initially an empty collection (in the form of a map)
-// President.instances = {};
-// add President to the list of Person subtypes
-// Person.subtypes.push( President);
 
 /*********************************************************
  *** Class-level ("static") storage management methods ****
@@ -103,7 +78,9 @@ President.converter = {
     }
 };
 
-// Load a president record from Firestore
+/**
+ *  Load a president record
+ */
 President.retrieve = async function (personId) {
     try {
         const presidentRec = (await db.collection("presidents").doc( personId)
@@ -115,7 +92,9 @@ President.retrieve = async function (personId) {
     }
 };
 
-// Load all president records from Firestore
+/**
+ *  Load all president records
+ */
 President.retrieveAll = async function (order) {
     let presidentsCollRef = db.collection("presidents");
     try {
@@ -154,12 +133,12 @@ President.retrieveBlock = async function (params) {
     }
 };
 
-// Create a Firestore document in the Firestore collection "presidents"
+/**
+ *  Create a new president record
+ */
 President.add = async function (slots) {
     var validationResult = null,
         president = null;
-    // const personsCollRef = db.collection("persons"),
-    //     personDocRef = personsCollRef.doc( slots.personId);
     try {
         president = new President(slots);
         validationResult = await President.checkPersonIdAsId( president.personId);
@@ -173,14 +152,15 @@ President.add = async function (slots) {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
 };
-// Update a Firestore document in the Firestore collection "presidents"
+/**
+ *  Update an existing president record
+ */
 President.update = async function (slots) {
     const updatedSlots = {};
     let validationResult = null,
         presidentRec = null,
         presidentDocRef = null;
 
-    // const presidentDocRef = db.collection("presidents").doc( slots.personId);
     try {
         presidentDocRef = db.collection("presidents").doc(slots.personId);
         const presidentDocSn = await presidentDocRef.withConverter(President.converter).get();
@@ -189,8 +169,6 @@ President.update = async function (slots) {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
     try {
-        // const presidentDocSns = await presidentDocRef.withConverter( President.converter).get();
-        // const presidentBeforeUpdate = presidentDocSns.data();
         if (presidentRec.name !== slots.name) {
             validationResult = President.checkName( slots.name);
             if (validationResult instanceof NoConstraintViolation) {
@@ -236,24 +214,25 @@ President.update = async function (slots) {
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }
+
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
+
     if (updatedProperties.length > 0) {
         await presidentDocRef.withConverter( President.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for president record (Person ID: "${slots.personId}")`);
     } else {
         console.log(`No property value changed for president record (Person ID: "${slots.personId}")!`);
     }
-    // }
 };
 
-// Delete a Firestore document in the Firestore collection "presidents"
+/**
+ *  Delete a president record
+ */
 President.destroy = async function (personId) {
-    // const president = President.retrieve(personId);
     try {
         const assosCollRef = db.collection("associations"),
             presidentsCollRef = db.collection("presidents"),
-            assoQrySn = assosCollRef.where("assoAssociation", "==", parseInt(personId)),
+            assoQrySn = assosCollRef.where("assoAssociation_id", "==", parseInt(personId)),
             associatedAssoDocSns = (await assoQrySn.get()).docs,
             presidentDocRef = presidentsCollRef.doc( personId);
         // initiate batch write
@@ -272,21 +251,6 @@ President.destroy = async function (personId) {
     } catch (e) {
         console.error(`Error deleting president record: ${e}`);
     }
-    //     // delete all references to this president in football association objects
-    //     for (const assoId of Object.keys(await FootballAssociation.retrieveAll().then(value => value))) {
-    //         const asso = await FootballAssociation.retrieve().then(value => value);
-    //         if (asso.president === president) {
-    //             delete asso._president;  // delete the slot
-    //             console.log(`Football association ${asso.assoId} updated.`);
-    //         }
-    //     }
-    //
-    //     await db.collection("presidents").doc( personId).delete();
-    //     console.log(`President record with person ID '${personId}' deleted.`);
-    // } catch( e) {
-    //     console.error(`Error when deleting president record: ${e}`);
-    //     return;
-    // }
 };
 
 /*******************************************

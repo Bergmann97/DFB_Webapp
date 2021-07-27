@@ -19,15 +19,6 @@ import { db } from "../c/initialize.mjs";
  *  Load and save test data
  */
 async function generateTestData () {
-    // console.log(param + "/type: " + typeof param);
-    // if (param === "persons") {
-    //     try {
-    //
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name} : ${e.message}`);
-    //     }
-    //
-    // }
     try {
         let response = null;
         // generate person records
@@ -109,10 +100,6 @@ async function clearData () {
             // person
             const personDocSns = (await db.collection("persons").withConverter( Person.converter)
                 .get()).docs;
-            // for (const p of personDocSns) {
-            //     await db.collection("persons").doc(p.id).delete();
-            //     console.log(`Person record ${p.id} deleted!`);
-            // }
             await Promise.all( personDocSns.map(
                 personDocSn => Person.destroy( personDocSn.id)
             ));

@@ -1,5 +1,5 @@
 /**
- * @fileOverview  Contains various view functions for the use case deleteFootballClub
+ * @fileOverview  Contains various view functions for the use case "delete football club"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
 /***************************************************************
@@ -23,9 +23,8 @@ const formEl = document.forms["Club"],
 formEl.reset();
 
 /***************************************************************
- Set up (choice) widgets
+ Set up selection lists
  ***************************************************************/
-// set up the football club selection list
 fillSelectWithOptions( selectClubEl, clubRecords,
     {valueProp:"clubId", displayProp:"name"});
 

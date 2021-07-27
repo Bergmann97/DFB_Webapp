@@ -2,9 +2,12 @@
  * @fileOverview  View methods for the use case "update football association"
  * @authors Gerd Wagner & Juan-Francisco Reyes (modified by Mina Lee)
  */
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import FootballAssociation from "../../m/FootballAssociation.mjs";
-import {createChoiceWidget, createMultiSelectionWidget, fillSelectWithOptions} from "../../../lib/util.mjs";
-import Member from "../../m/Member.mjs";
+import { createMultiSelectionWidget, fillSelectWithOptions } from "../../../lib/util.mjs";
 
 /***************************************************************
  Load data
@@ -16,38 +19,36 @@ const assoRecords = await FootballAssociation.retrieveAll();
  ***************************************************************/
 const formEl = document.forms["Association"],
     selectAssoEl = formEl.selectAssociation,
-    // selectPresidentEl = formEl.selectPresident,
     supAssosUpWidget = formEl.querySelector(".MultiSelectionWidget"),
-    // selectMembersEl = formEl.selectMembers,
-    // selectClubsEl = formEl.selectClubs,
     updateButton = formEl.commit;
+
 formEl.reset();
+
 /***************************************************************
  Initialize subscription to DB-UI synchronization
  ***************************************************************/
 let cancelSyncDBwithUI = null;
 
 /***************************************************************
- Set up (choice) widgets
+ Set up the selection lists
  ***************************************************************/
-// set up the football association selection list
 fillSelectWithOptions( selectAssoEl, assoRecords, {valueProp:"assoId", displayProp:"name"});
 
+/***************************************************************
+ When a football association is selected
+ ***************************************************************/
 // when a football association is selected, fill the form with its data
 selectAssoEl.addEventListener("change", async function () {
     const assoId = selectAssoEl.value;
-    // console.log("assoId: " + assoId + "/type: " + typeof assoId);
     if (assoId) {
         // retrieve up-to-date football association record
         const assoRec = await FootballAssociation.retrieve( assoId);
         formEl.assoId.value = assoRec.assoId;
         formEl.name.value = assoRec.name;
-        // console.log(assoRec.supAssociations);
-        // console.log(assoRec.supAssociationIdRefs);
+
         if (assoRec.supAssociations) {
             createMultiSelectionWidget(supAssosUpWidget, assoRec.supAssociations,
                 "upSupAssos", "Enter ID", 0);
-
         }
 
     } else {
@@ -77,6 +78,7 @@ updateButton.addEventListener("click", handleSubmitButtonClickEvent);
 formEl.addEventListener( "submit", function (e) {
     e.preventDefault();
 });
+
 // Set event cancel of DB-UI sync when the browser window/tab is closed
 window.addEventListener("beforeunload", function () {
     cancelSyncDBwithUI();
@@ -116,8 +118,6 @@ async function handleSubmitButtonClickEvent() {
     if (supAssociationIdRefsToAdd.length > 0) {
         slots.supAssociationIdRefsToAdd = supAssociationIdRefsToAdd;
     }
-    /* MISSING CODE */
-    // add event listeners for responsive validation
     if (slots.supAssociationIdRefsToAdd) {
         for (const sa of slots.supAssociationIdRefsToAdd) {
             let responseValidation = await FootballAssociation.checkSupAssociation( sa);
@@ -131,7 +131,6 @@ async function handleSubmitButtonClickEvent() {
     if (formEl.checkValidity()) {
         await FootballAssociation.update(slots);
         // update the selection list option
-        // selectAssoEl.innerHTML = "";
         supAssosListEl.innerHTML = "";
         selectAssoEl.options[selectAssoEl.selectedIndex].text = slots.name;
 

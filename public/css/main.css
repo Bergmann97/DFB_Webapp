@@ -392,35 +392,6 @@ form div.MultiSelectionWidget {
     overflow: auto;
 }
 
-/*form div.MultiSelectionWidget > ul {*/
-/*    display: inline-block;*/
-/*    vertical-align: top;*/
-/*    margin: 0;*/
-/*}*/
-/*form div.MultiSelectionWidget > ul > li {*/
-/*    width: 100%;*/
-/*    clear: right;*/
-/*    list-style: none;*/
-/*    height: 1.5em;*/
-/*    margin: 0.5em auto;*/
-/*    !*margin-bottom: 0.5em;*!*/
-/*}*/
-/*form div.MultiSelectionWidget > ul > li > button {*/
-/*    float: right;*/
-/*    margin-left: 0.5em;*/
-/*    font-size: 70%;*/
-/*    !* vertical-align: middle; *!*/
-/*}*/
-/*form div.MultiSelectionWidget > ul > li.removed {*/
-/*    color: red;*/
-/*    text-decoration: line-through;*/
-/*}*/
-/*form div.MultiSelectionWidget > ul > li.added {*/
-/*    color: green;*/
-/*}*/
-
-
-
 /* ==========================================================================
    Media Queries
    ========================================================================== */

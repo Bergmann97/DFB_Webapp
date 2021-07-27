@@ -5,19 +5,16 @@
  * @license This code is licensed under The Code Project Open License (CPOL), implying that the code is provided "as-is",
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import Person, {GenderEL, PersonTypeEL} from "./Person.mjs";
+import {dateToTimestamp, handleUserMessage, timestampToDate} from "../../lib/util.mjs";
+import { MandatoryValueConstraintViolation, NoConstraintViolation,
+    UniquenessConstraintViolation } from "../../lib/errorTypes.mjs";
+import Person from "./Person.mjs";
 import FootballClub from "./FootballClub.mjs";
-import {cloneObject, dateToTimestamp, handleUserMessage, isNonEmptyString, timestampToDate} from "../../lib/util.mjs";
-import {
-    MandatoryValueConstraintViolation,
-    NoConstraintViolation, RangeConstraintViolation,
-    ReferentialIntegrityConstraintViolation, UniquenessConstraintViolation
-} from "../../lib/errorTypes.mjs";
-import Player from "./Player.mjs";
-// import Member from "./Member.mjs";
-// import Player from "./Player.mjs";
-// import President from "./President.mjs";
 
 /**
  * Constructor function for the class Coach
@@ -26,19 +23,11 @@ import Player from "./Player.mjs";
 class Coach extends Person {
     // using a single record parameter with ES6 function parameter destructuring
     constructor ({personId, name, dateOfBirth, gender, type, assoClub, assoClub_id}) {
-        // constructor ({personId, name, dateOfBirth, gender, type, assoClub}) {
         super({personId, name, dateOfBirth, gender, type});  // invoke Person constructor
-        // assign additional properties
-        // this.agent = agent;
-        // this._coachedClubs = {};
         this.assoClub = assoClub || assoClub_id;
 
     }
-    // get coachedClubs() {
-    //     return this._coachedClubs;
-    // }
     static async checkPersonIdAsIdRef ( personId) {
-        console.log("personId: " + personId + "/type: " + typeof personId);
         var validationResult = Coach.checkPersonId( personId);
         if ((validationResult instanceof NoConstraintViolation)) {
             if (!personId) {
@@ -59,7 +48,7 @@ class Coach extends Person {
 
     get assoClub() {
         return this._assoClub;
-    }
+    };
     static async checkAssoClub(assoClub_id) {
         var validationResult = null;
         if (!assoClub_id) {
@@ -70,48 +59,11 @@ class Coach extends Person {
             validationResult = await FootballClub.checkClubIdAsIdRef( String(assoClub_id));
         }
         return validationResult;
-    }
-
+    };
     set assoClub(assoClub) {
-        // const constraintViolation = Coach.checkAssoClub( assoClub);
-        // if (constraintViolation instanceof NoConstraintViolation) {
         this._assoClub = assoClub;
-        // } else {
-        //     throw constraintViolation;
-        // }
-        // if (!assoClub) {  // unset assoClub
-        //     delete this._assoClub;
-        // } else {
-        //     // assoClub can be an ID reference or an object reference
-        //     const assoClub_id = (typeof assoClub !== "object") ? assoClub : assoClub.clubId;
-        //     const validationResult = Coach.checkAssoClub(assoClub_id);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         // create the new football club reference
-        //         this._assoClub = FootballClub.retrieve(assoClub_id).then(value => value);
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-        // const constraintViolation = Coach.checkAssoClub( a);
-        // if (constraintViolation instanceof NoConstraintViolation) {
-        //     this._assoClub = a;
-        // } else {
-        //     throw constraintViolation;
-        // }
-    }
-    // toString() {
-    //     var memberStr = `Member{ person ID: ${this.personId}, name: ${this.name}`;
-    //     memberStr += `, association: ${this.association}`;
-    //     return `${memberStr}}`;
-    // }
+    };
 }
-/***********************************************
- *** Class-level ("static") properties **********
- ************************************************/
-// initially an empty collection (in the form of a map)
-// Coach.instances = {};
-// add Coach to the list of Person subtypes
-// Person.subtypes.push( Coach);
 
 /*********************************************************
  *** Class-level ("static") storage management methods ****
@@ -145,7 +97,9 @@ Coach.converter = {
     }
 };
 
-// Load a coach record from Firestore
+/**
+ *  Load a coach record
+ */
 Coach.retrieve = async function (personId) {
     try {
         const coachRec = (await db.collection("coaches").doc( personId)
@@ -155,19 +109,11 @@ Coach.retrieve = async function (personId) {
     } catch (e) {
         console.error(`Error retrieving coach record: ${e}`);
     }
-    // const coachesCollRef = db.collection("coaches"),
-    //     coachDocRef = coachesCollRef.doc( personId);
-    // var coachDocSnapshot=null;
-    // try {
-    //     coachDocSnapshot = await coachDocRef.get();
-    // } catch( e) {
-    //     console.error(`Error when retrieving coach record: ${e}`);
-    //     return null;
-    // }
-    // const coachRecord = coachDocSnapshot.data();
-    // return coachRecord;
 };
-// Load all coach records from Firestore
+
+/**
+ *  Load all coach records
+ */
 Coach.retrieveAll = async function (order) {
     let coachesCollRef = db.collection("coaches");
     try {
@@ -206,19 +152,9 @@ Coach.retrieveBlock = async function (params) {
     }
 };
 
-// Coach.retrieveAll = async function () {
-//     let coachesCollRef = db.collection("coaches");
-//     try {
-//         const coachRecords = (await coachesCollRef.withConverter( Coach.converter)
-//             .get()).docs.map( d => d.data());
-//         console.log(`${coachRecords.length} coach records retrieved.`);
-//         return coachRecords;
-//     } catch (e) {
-//         console.error(`Error retrieving coach records: ${e}`);
-//     }
-// };
-
-// Create a Firestore document in the Firestore collection "coaches"
+/**
+ *  Create a new coach record
+ */
 Coach.add = async function (slots) {
     var validationResult = null,
         coach = null;
@@ -234,33 +170,16 @@ Coach.add = async function (slots) {
     } catch( e) {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
-    // console.log(`Person record ${slots.name} created.`);
-    // if (coach) {
-    //     try {
-    //         const coachDocRef = db.collection("coaches").doc( coach.personId);
-    //         await coachDocRef.withConverter( Coach.converter).set( coach);
-    //         console.log(`Coach record "${coach.personId}" created.`);
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    //     }
-    // }
-    // const coachesCollRef = db.collection("coaches"),
-    //     coachDocRef = coachesCollRef.doc( slots.personId);
-    // try {
-    //     await coachDocRef.set( slots);
-    // } catch( e) {
-    //     console.error(`Error when adding coach record: ${e}`);
-    //     return;
-    // }
-    // console.log(`Coach record ${slots.name} created.`);
 };
-// Update a Firestore document in the Firestore collection "coaches"
+
+/**
+ *  Update an existing coach record
+ */
 Coach.update = async function (slots) {
     const updatedSlots = {};
     let validationResult = null,
         coachRec = null,
         coachDocRef = null;
-    // const coachDocRef = db.collection("coaches").doc( slots.personId);
 
     try {
         coachDocRef = db.collection("coaches").doc(slots.personId);
@@ -312,71 +231,27 @@ Coach.update = async function (slots) {
         } else if (!parseInt(slots.assoClub) && coachRec.assoClub !== undefined) {
             updatedSlots.assoClub = firebase.firestore.FieldValue.delete();
         }
-        // const coachDocSns = await coachDocRef.withConverter( Coach.converter).get();
-        // const coachBeforeUpdate = coachDocSns.data();
-
-        // if (coachBeforeUpdate.name !== slots.name) {
-        //     validationResult = Person.checkName( slots.name);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.name = slots.name;
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-        // if (coachBeforeUpdate.dateOfBirth !== slots.dateOfBirth) {
-        //     validationResult = Person.checkDateOfBirth( slots.dateOfBirth);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.dateOfBirth = slots.dateOfBirth;
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-        // if (coachBeforeUpdate.gender !== parseInt(slots.gender)) {
-        //     validationResult = Person.checkGender( slots.gender);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.gender = parseInt(slots.gender);
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-        // if (!coachBeforeUpdate.type.isEqualTo(slots.type)) {
-        //     validationResult = Person.checkTypes( slots.type);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.type = slots.type;
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
-        // if (coachBeforeUpdate.assoClub !== parseInt(slots.assoClub)) {
-        //     validationResult = Coach.checkAssoClub( slots.assoClub);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.assoClub = parseInt(slots.assoClub);
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
         // noConstraintViolated = false;
     }
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
     if (updatedProperties.length > 0) {
         await coachDocRef.withConverter( Coach.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for coach record (Person ID: "${slots.personId}")`);
     } else {
         console.log(`No property value changed for coach record (Person ID: "${slots.personId}")!`);
     }
-    // }
 };
-// Delete a Firestore document in the Firestore collection "coaches"
+
+/**
+ *  Delete a coach record
+ */
 Coach.destroy = async function (personId) {
     try {
-        // await db.collection("coaches").doc( personId).delete();
-        // console.log(`Coach record with person ID '${personId}' deleted.`);
         const clubsCollRef = db.collection("clubs"),
             coachesCollRef = db.collection("coaches"),
-            clubQrySn = clubsCollRef.where("assoClub", "==", parseInt(personId)),
+            clubQrySn = clubsCollRef.where("assoClub_id", "==", parseInt(personId)),
             associatedClubDocSns = (await clubQrySn.get()).docs,
             coachDocRef = coachesCollRef.doc( personId);
 
@@ -441,16 +316,15 @@ Coach.generateTestData = async function () {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
 };
+
 // Clear test data
 Coach.clearData = async function () {
     if (confirm("Do you really want to delete all coach records?")) {
         console.log('Clearing test data...');
         let coachesCollRef = db.collection("coaches");
-
         try {
             const coachDocSns = (await coachesCollRef.withConverter( Person.converter)
                 .get()).docs;
-
             await Promise.all( coachDocSns.map(
                 coachDocSns => Coach.destroy( coachDocSns.id)
             ));
@@ -486,6 +360,5 @@ Coach.syncDBwithUI = async function (personId) {
         console.error(`${e.constructor.name} : ${e.message}`);
     }
 }
-
 
 export default Coach;

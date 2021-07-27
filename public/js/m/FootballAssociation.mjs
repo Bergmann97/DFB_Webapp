@@ -6,18 +6,13 @@
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
 
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import {createIsoDateString, isIntegerOrIntegerString, isNonEmptyString, handleUserMessage} from "../../lib/util.mjs";
-import {
-    NoConstraintViolation,
-    MandatoryValueConstraintViolation,
-    RangeConstraintViolation,
-    UniquenessConstraintViolation,
-    IntervalConstraintViolation,
-    ReferentialIntegrityConstraintViolation
-}
-    from "../../lib/errorTypes.mjs";
-import Member from "./Member.mjs";
+import { isNonEmptyString, handleUserMessage } from "../../lib/util.mjs";
+import { NoConstraintViolation, MandatoryValueConstraintViolation, RangeConstraintViolation,
+    UniquenessConstraintViolation, ReferentialIntegrityConstraintViolation } from "../../lib/errorTypes.mjs";
 
 /**
  * Constructor function for the class FootballAssociation
@@ -54,7 +49,6 @@ class FootballAssociation {
        Checks ID uniqueness constraint against the direct type of a FootballAssociation object
        */
     static async checkAssoIdAsId( assoId) {
-        console.log(assoId + "/type: " + typeof assoId);
         let validationResult = FootballAssociation.checkAssoId( parseInt(assoId));
         if ((validationResult instanceof NoConstraintViolation)) {
             if (!assoId) {
@@ -72,7 +66,6 @@ class FootballAssociation {
         }
         return validationResult;
     };
-
     static async checkAssoIdAsIdRef( id) {
         var constraintViolation = FootballAssociation.checkAssoId( id);
         if ((constraintViolation instanceof NoConstraintViolation) &&
@@ -84,8 +77,7 @@ class FootballAssociation {
             }
         }
         return constraintViolation;
-    }
-
+    };
     set assoId( assoId) {
         const validationResult = FootballAssociation.checkAssoId ( assoId);
         if (validationResult instanceof NoConstraintViolation) {
@@ -121,6 +113,7 @@ class FootballAssociation {
     get supAssociations() {
         return this._supAssociations;
     };
+
     static async checkSupAssoIdAsIdRef( supAssociation_id) {
         var constraintViolation = FootballAssociation.checkAssoId( supAssociation_id);
         if ((constraintViolation instanceof NoConstraintViolation) && supAssociation_id) {
@@ -132,7 +125,6 @@ class FootballAssociation {
         }
         return constraintViolation;
     };
-
     static checkSupAssociation( supAssociation_id) {
         var validationResult = null;
         if (!supAssociation_id) {
@@ -146,13 +138,12 @@ class FootballAssociation {
     };
     set supAssociations( sa) {
         this._supAssociations = sa;
-    }
+    };
 
 }
 /*********************************************************
  ***  Class-level ("static") storage management methods **
  *********************************************************/
-
 /**
  *  Conversion between a FootballAssociation object and a corresponding Firestore document
  */
@@ -180,7 +171,7 @@ FootballAssociation.converter = {
 /**
  *  Load a football association record
  */
-// Load a football association record from Firestore
+
 FootballAssociation.retrieve = async function (assoId) {
     try {
         const assoRec = (await db.collection("associations").doc( assoId)
@@ -230,7 +221,6 @@ FootballAssociation.retrieveBlock = async function (params) {
     }
 };
 
-
 /**
  *  Create a new football association record
  */
@@ -241,11 +231,8 @@ FootballAssociation.add = async function (slots) {
 
     try {
         asso = new FootballAssociation(slots);
-        console.log(asso);
-        console.log(asso.assoId + "/type: " + typeof asso.assoId);
         // invoke asynchronous ID/uniqueness check
         validationResult = await FootballAssociation.checkAssoIdAsId( asso.assoId);
-        // let validationResult = await FootballAssociation.checkAssoIdAsId( asso.assoId);
 
         if (!validationResult instanceof NoConstraintViolation) {
             throw validationResult;
@@ -255,17 +242,7 @@ FootballAssociation.add = async function (slots) {
         console.log(`Football Association record (Association ID: "${asso.assoId}") created!`);
     } catch( e) {
         console.error(`Error creating football association record: ${e}`);
-        // asso = null;
     }
-    // if (asso) {
-    //     try {
-    //         const assoDocRef = db.collection("associations").doc( asso.assoId);
-    //         await assoDocRef.withConverter( FootballAssociation.converter).set( asso);
-    //         console.log(`Football association record (Association ID: "${asso.assoId}") created.`);
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    //     }
-    // }
 };
 
 /**
@@ -276,24 +253,11 @@ FootballAssociation.update = async function (slots) {
     let validationResult = null,
         assoRec = null,
         assoDocRef = null;
-    // const assoDocRef = db.collection("associations").doc( slots.assoId);
     try {
-        // const assoDocSns = await assoDocRef.withConverter( FootballAssociation.converter).get();
-        // const assoBeforeUpdate = assoDocSns.data();
         // retrieve up-to-date association record
         assoDocRef = db.collection("associations").doc( slots.assoId);
         const assoDocSn = await assoDocRef.withConverter(FootballAssociation.converter).get();
         assoRec = assoDocSn.data();
-        // console.log(assoRec);
-
-        // if (assoBeforeUpdate.name !== slots.name) {
-        //     validationResult = FootballAssociation.checkName( slots.name);
-        //     if (validationResult instanceof NoConstraintViolation) {
-        //         updatedSlots.name = slots.name;
-        //     } else {
-        //         throw validationResult;
-        //     }
-        // }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
         // noConstraintViolated = false;
@@ -307,7 +271,6 @@ FootballAssociation.update = async function (slots) {
                 throw validationResult;
             }
         }
-        // console.log(assoRec.supAssociations);
         let supAssociationIdRefs = assoRec.supAssociations;
         if (slots.supAssociationIdRefsToAdd) {
             supAssociationIdRefs = supAssociationIdRefs.concat( slots.supAssociationIdRefsToAdd.map( d => +d));
@@ -322,15 +285,12 @@ FootballAssociation.update = async function (slots) {
         console.error(`${e.constructor.name}: ${e.message}`);
     }
     let updatedProperties = Object.keys( updatedSlots);
-    // console.log("assoId: " + slots.assoId + "/type: " + typeof slots.assoId);
-    // if (noConstraintViolated) {
     if (updatedProperties.length > 0) {
         await assoDocRef.withConverter( FootballAssociation.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for football association record (Association ID: "${slots.assoId}")`);
     } else {
         console.log(`No property value changed for football association record (Association ID: "${slots.assoId}")!`);
     }
-    // }
 };
 
 /**
@@ -341,7 +301,7 @@ FootballAssociation.destroy = async function (assoId) {
         const membersCollRef = db.collection("members"),
             presidentsCollRef = db.collection("presidents"),
             assosCollRef = db.collection("associations"),
-            presidentQrySn = presidentsCollRef.where("assoAssociation", "==", parseInt(assoId)),
+            presidentQrySn = presidentsCollRef.where("assoAssociation_id", "==", parseInt(assoId)),
             memberQrySn = membersCollRef.where("assoAssociationIdRefs", "array-contains", assoId),
             associatedPresidentDocSns = (await presidentQrySn.get()).docs,
             associatedMemberDocSns = (await memberQrySn.get()).docs,
@@ -399,7 +359,6 @@ FootballAssociation.generateTestData = async function () {
         console.log('Generating test data...');
         const response = await fetch( "../../test-data/associations.json");
         const assoRecords = await response.json();
-        // console.log(assoRecords);
         await Promise.all( assoRecords.map( d => FootballAssociation.add( d)));
 
         console.log(`${assoRecords.length} football associations saved.`);

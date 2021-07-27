@@ -5,15 +5,14 @@
  * @license This code is licensed under The Code Project Open License (CPOL), implying that the code is provided "as-is",
  * can be modified to create derivative works, can be redistributed, and can be used in commercial applications.
  */
+
+/***************************************************************
+ Import classes, datatypes and utility procedures
+ ***************************************************************/
 import { db } from "../c/initialize.mjs";
-import Person, {GenderEL, PersonTypeEL} from "./Person.mjs";
-import {cloneObject, handleUserMessage, isNonEmptyString,
-    dateToTimestamp, timestampToDate} from "../../lib/util.mjs";
-import {
-    MandatoryValueConstraintViolation,
-    NoConstraintViolation, RangeConstraintViolation,
-    ReferentialIntegrityConstraintViolation
-} from "../../lib/errorTypes.mjs";
+import { handleUserMessage, dateToTimestamp, timestampToDate} from "../../lib/util.mjs";
+import { NoConstraintViolation } from "../../lib/errorTypes.mjs";
+import Person from "./Person.mjs";
 import FootballClub from "./FootballClub.mjs";
 import FootballAssociation from "./FootballAssociation.mjs";
 
@@ -23,27 +22,17 @@ import FootballAssociation from "./FootballAssociation.mjs";
  */
 class Member extends Person {
     // using a single record parameter with ES6 function parameter destructuring
-    // constructor ({personId, name, dateOfBirth, gender, type}) {
     constructor ({personId, name, dateOfBirth, gender, type, assoClubs, assoClubIdRefs,
                      assoAssociations, assoAssociationIdRefs}) {
         super({personId, name, dateOfBirth, gender, type});  // invoke Person constructor
 
-        // assign object references or ID references (to be converted in setter)
         if (assoClubs || assoClubIdRefs) {
             this.assoClubs = assoClubs || assoClubIdRefs;
         }
         if (assoAssociations || assoAssociationIdRefs) {
             this.assoAssociations = assoAssociations || assoAssociationIdRefs;
         }
-        // this._memberedClubs = {};
-        // this._memberedAssos = {};
     }
-    // get memberedClubs() {
-    //     return this._memberedClubs;
-    // }
-    // get memberedAssos() {
-    //     return this._memberedAssos;
-    // }
 
     get assoClubs() {
         return this._assoClubs;
@@ -56,58 +45,15 @@ class Member extends Person {
         } else {
             validationResult = await FootballClub.checkClubIdAsIdRef( assoClub_id);
         }
-        // else {
-        //     // invoke foreign key constraint check
-        //     validationResult = Actor.checkPersonIdAsIdRef( actor_id);
-        // }
         return validationResult;
-    }
+    };
     set assoClubs(ac) {
         this._assoClubs = ac;
-        // // assoClub can be an ID reference or an object reference
-        // const assoClub_id = (typeof assoClub !== "object") ? parseInt(assoClub) : assoClub.clubId;
-        // const validationResult = Member.checkAssoClub(assoClub_id);
-        //
-        // console.log("validationResult: " + validationResult.message);
-        // // console.log(assoClub_id + "/type: " + typeof assoClub_id);
-        // if (assoClub_id && validationResult instanceof NoConstraintViolation) {
-        //     // add the new associated club reference
-        //     const key = String(assoClub_id);
-        //     // this._assoClubs[key] = FootballClub.instances[key];
-        //     console.log(await FootballClub.retrieve(key).then(value => value));
-        //     this._assoClubs[key] = await FootballClub.retrieve(key).then(value => value);
-        // } else {
-        //     throw validationResult;
-        // }
-    }
-    // removeAssoClub( assoClub) {
-    //     // assoClub can be an ID reference or an object reference
-    //     const assoClub_id = (typeof assoClub !== "object") ? parseInt( assoClub) : assoClub.clubId;
-    //     const validationResult = Member.checkAssoClub( assoClub_id);
-    //
-    //     if (validationResult instanceof NoConstraintViolation) {
-    //         // delete the associated club reference
-    //         delete this._assoClubs[String( assoClub_id)];
-    //     } else {
-    //         throw validationResult;
-    //     }
-    // }
-    // set assoClubs( assoClub) {
-    //     this._assoClubs = {};
-    //     if (Array.isArray(assoClub)) {  // array of IdRefs
-    //         for (const idRef of assoClub) {
-    //             this.addAssoClub( idRef);
-    //         }
-    //     } else {  // map of IdRefs to object references
-    //         for (const idRef of Object.keys( assoClub)) {
-    //             this.addAssoClub( assoClub[idRef]);
-    //         }
-    //     }
-    // }
+    };
 
     get assoAssociations() {
         return this._assoAssociations;
-    }
+    };
     static async checkAssoAssociation( assoAssociation_id) {
         var validationResult = null;
         if (!assoAssociation_id) {
@@ -116,57 +62,11 @@ class Member extends Person {
         } else {
             validationResult = await FootballAssociation.checkAssoIdAsIdRef( assoAssociation_id);
         }
-        // else {
-        //     // invoke foreign key constraint check
-        //     validationResult = Actor.checkPersonIdAsIdRef( actor_id);
-        // }
         return validationResult;
-    }
-    // async addAssoAssociation(assoAssociation) {
-    //     // assoAssociation can be an ID reference or an object reference
-    //     const assoAssociation_id = (typeof assoAssociation !== "object") ? parseInt(assoAssociation) : assoAssociation.assoId;
-    //     const validationResult = Member.checkAssoAssociation(assoAssociation_id);
-    //
-    //     if (assoAssociation_id && validationResult instanceof NoConstraintViolation) {
-    //         // add the new associated association reference
-    //
-    //         const key = String(assoAssociation_id);
-    //         console.log(await FootballAssociation.retrieve(key).then(value => value));
-    //         this._assoAssociations[key] = await FootballAssociation.retrieve(key).then(value => value);
-    //     } else {
-    //         throw validationResult;
-    //     }
-    // }
-    // removeAssoAssociation( assoAssociation) {
-    //     // assoAssociation can be an ID reference or an object reference
-    //     const assoAssociation_id = (typeof assoAssociation !== "object") ? parseInt( assoAssociation) : assoAssociation.assoId;
-    //     const validationResult = Member.checkAssoAssociation( assoAssociation_id);
-    //
-    //     if (validationResult instanceof NoConstraintViolation) {
-    //         // delete the associated association reference
-    //         delete this._assoAssociations[String( assoAssociation_id)];
-    //     } else {
-    //         throw validationResult;
-    //     }
-    // }
+    };
     set assoAssociations( aa) {
         this._assoAssociations = aa;
-        // if (Array.isArray(assoAssociation)) {  // array of IdRefs
-        //     for (const idRef of assoAssociation) {
-        //         this.addAssoAssociation( idRef);
-        //     }
-        // } else {  // map of IdRefs to object references
-        //     for (const idRef of Object.keys( assoAssociation)) {
-        //         this.addAssoAssociation( assoAssociation[idRef]);
-        //     }
-        // }
-    }
-
-    // toString() {
-    //     var memberStr = `Member{ person ID: ${this.personId}, name: ${this.name}`;
-    //     memberStr += `, association: ${this.association}`;
-    //     return `${memberStr}}`;
-    // }
+    };
 }
 
 /*********************************************************
@@ -211,7 +111,9 @@ Member.converter = {
     }
 };
 
-// Load a member record from Firestore
+/**
+ *  Load a member record
+ */
 Member.retrieve = async function (personId) {
     try {
         const memberRec = (await db.collection("members").doc( personId)
@@ -223,7 +125,9 @@ Member.retrieve = async function (personId) {
     }
 };
 
-// Load all member records from Firestore
+/**
+ *  Load all member records
+ */
 Member.retrieveAll = async function (order) {
     let membersCollRef = db.collection("members");
     try {
@@ -237,36 +141,14 @@ Member.retrieveAll = async function (order) {
     }
 };
 
-// Member.retrieveAll = async function () {
-//     let membersCollRef = db.collection("members");
-//     try {
-//         const memberRecords = (await membersCollRef.withConverter( Member.converter)
-//             .get()).docs.map( d => d.data());
-//         console.log(`${memberRecords.length} member records retrieved.`);
-//         return memberRecords;
-//     } catch (e) {
-//         console.error(`Error retrieving member records: ${e}`);
-//     }
-// };
-
-/***********************************************
- *** Class-level ("static") properties **********
- ************************************************/
-// initially an empty collection (in the form of a map)
-// Member.instances = {};
-// add Member to the list of Person subtypes
-// Person.subtypes.push( Member);
-
-/*********************************************************
- *** Class-level ("static") storage management methods ****
- **********************************************************/
-// Create a Firestore document in the Firestore collection "members"
+/**
+ *  Create a member record
+ */
 Member.add = async function (slots) {
     var validationResult = null,
         member = null;
     try {
         member = new Member(slots);
-        // let validationResult = await Person.checkPersonId( member.personId);
         validationResult = await Member.checkPersonId( member.personId);
         if (!validationResult instanceof NoConstraintViolation) {
             throw validationResult;
@@ -277,20 +159,12 @@ Member.add = async function (slots) {
 
     } catch( e) {
         console.error(`Error creating member record: ${e}`);
-        // member = null;
     }
-    // if (member) {
-    //     try {
-    //         const memberDocRef = db.collection("members").doc( member.personId);
-    //         await memberDocRef.withConverter( Member.converter).set( member);
-    //         console.log(`Member record "${member.personId}" created.`);
-    //     } catch (e) {
-    //         console.error(`${e.constructor.name}: ${e.message} + ${e}`);
-    //     }
-    // }
 };
 
-// Update a Firestore document in the Firestore collection "members"
+/**
+ *  Update an existing member record
+ */
 Member.update = async function ({personId, name, dateOfBirth, gender, type,
                                     assoClubIdRefsToAdd, assoClubIdRefsToRemove,
                                     assoAssociationIdRefsToAdd, assoAssociationIdRefsToRemove}) {
@@ -298,15 +172,6 @@ Member.update = async function ({personId, name, dateOfBirth, gender, type,
     let validationResult = null,
         memberRec = null,
         memberDocRef = null;
-
-    // // retrieve up-to-date member record
-    // const memberRec = await Member.retrieve( personId);
-    //
-    // // const member = Member.instances[personId];
-    // const objectBeforeUpdate = cloneObject( memberRec);  // save the current state of member
-    //
-    // var noConstraintViolated = true, updatedProperties = [];
-    // const memberDocRef = db.collection("members").doc( personId);
     try {
         // retrieve up-to-date member record
         memberDocRef = db.collection("members").doc( personId);
@@ -317,13 +182,6 @@ Member.update = async function ({personId, name, dateOfBirth, gender, type,
     }
 
     try {
-        // const memberDocSns = await memberDocRef.withConverter( Member.converter).get();
-        // const memberBeforeUpdate = memberDocSns.data();
-        // update only those slots that have changed
-        // if (memberRec.name !== name) updSlots.name = name;
-        // if (memberRec.dateOfBirth !== dateOfBirth) updSlots.dateOfBirth = dateOfBirth;
-        // if (memberRec.gender !== gender) updSlots.gender = gender;
-        // if (memberRec.type !== type) updSlots.type = type;
         if (memberRec.name !== name) {
             validationResult = Person.checkName( name);
             if (validationResult instanceof NoConstraintViolation) {
@@ -375,57 +233,22 @@ Member.update = async function ({personId, name, dateOfBirth, gender, type,
             assoAssociationIdRefs = assoAssociationIdRefs.filter( d => !assoAssociationIdRefsToRemove.includes( d));
         }
         updatedSlots.assoAssociationIdRefs = assoAssociationIdRefs;
-
-        // if (assoClubIdRefsToAdd) {
-        //     updatedSlots.push("assoClubs(added)");
-        //     for (let assoClubIdRef of assoClubIdRefsToAdd) {
-        //         memberBeforeUpdate.addAssoClub( assoClubIdRef);
-        //     }
-        // }
-        // if (assoClubIdRefsToRemove) {
-        //     updatedSlots.push("assoClubs(removed)");
-        //     for (let assoClub_id of assoClubIdRefsToRemove) {
-        //         memberBeforeUpdate.removeAssoClub( assoClub_id);
-        //     }
-        // }
-        //
-        // if (assoAssociationIdRefsToAdd) {
-        //     updatedSlots.push("assoAssociations(added)");
-        //     for (let assoAssociationIdRef of assoAssociationIdRefsToAdd) {
-        //         memberBeforeUpdate.addAssoAssociation( assoAssociationIdRef);
-        //     }
-        // }
-        // if (assoAssociationIdRefsToRemove) {
-        //     updatedSlots.push("assoAssociations(removed)");
-        //     for (let assoAssociation_id of assoAssociationIdRefsToRemove) {
-        //         memberBeforeUpdate.removeAssoAssociation( assoAssociation_id);
-        //     }
-        // }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
-        // noConstraintViolated = false;
     }
     let updatedProperties = Object.keys( updatedSlots);
-    // if (noConstraintViolated) {
+
     if (updatedProperties.length > 0) {
         await memberDocRef.withConverter( Member.converter).update( updatedSlots);
         console.log(`Property(ies) "${updatedProperties.toString()}" modified for member record (Person ID: "${personId}")`);
     } else {
         console.log(`No property value changed for member record (Person ID: "${personId}")!`);
     }
-    // }
-
-    // if (Object.keys( updSlots).length > 0) {
-    //     try {
-    //         await db.collection("members").doc( personId).update( updSlots);
-    //     } catch( e) {
-    //         console.error(`Error when updating member record: ${e}`);
-    //         return;
-    //     }
-    //     console.log(`Member record ${personId} modified.`);
-    // }
 };
-// Delete a Firestore document in the Firestore collection "members"
+
+/**
+ *  Delete a member record
+ */
 Member.destroy = async function (personId) {
     try {
         const clubsCollRef = db.collection("clubs"),
