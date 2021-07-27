@@ -17,7 +17,7 @@ import NationalTeam from "../../m/NationalTeam.mjs";
 const formEl = document.forms['Team'],
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
     selectCoachEl = formEl.selectCoach,
-    playersCrtWidget = formEl.querySelector( "form > div > .MultiSelectionWidget"),
+    playersCrtWidget = formEl.querySelector( "div.MultiSelectionWidget"),
     saveButton = formEl.commit;
 
 formEl.reset();

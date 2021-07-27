@@ -13,7 +13,7 @@ import { showProgressBar, createMultiSelectionWidget } from "../../../lib/util.m
  Declare variables for accessing UI elements
  ***************************************************************/
 const formEl = document.forms['Association'],
-    supAssoCrtWidget = formEl.querySelector("form > div > .MultiSelectionWidget"),
+    supAssoCrtWidget = formEl.querySelector("div.MultiSelectionWidget"),
     saveButton = formEl.commit;
 formEl.reset();
 
@@ -71,6 +71,8 @@ async function handleSaveButtonClickEvent() {
                 break;
             }  else formEl["crtSupAssos"].setCustomValidity( "");
         }
+    } else {
+        formEl["crtSupAssos"].setCustomValidity( "");
     }
 
     showProgressBar( "show");

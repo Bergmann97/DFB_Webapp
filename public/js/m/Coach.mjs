@@ -10,10 +10,11 @@
  Import classes, datatypes and utility procedures
  ***************************************************************/
 import { db } from "../c/initialize.mjs";
+
 import {dateToTimestamp, handleUserMessage, timestampToDate} from "../../lib/util.mjs";
 import { MandatoryValueConstraintViolation, NoConstraintViolation,
     UniquenessConstraintViolation } from "../../lib/errorTypes.mjs";
-import Person from "./Person.mjs";
+import Person, {GenderEL, PersonTypeEL} from "./Person.mjs";
 import FootballClub from "./FootballClub.mjs";
 
 /**
@@ -279,36 +280,36 @@ Coach.destroy = async function (personId) {
 // Create test data
 Coach.generateTestData = async function () {
     try {
-        // let coachRecords = [
-        //     {
-        //         personId: "12",
-        //         name: "Joachim Löw",
-        //         dateOfBirth: "1960-02-03",
-        //         gender: GenderEL.M,
-        //         type: [PersonTypeEL.COACH],
-        //         assoClub: 1
-        //     },
-        //     {
-        //         personId: "24",
-        //         name: "Martina Voss-Tecklenburg",
-        //         dateOfBirth: "1967-12-22",
-        //         gender: GenderEL.F,
-        //         type: [PersonTypeEL.COACH],
-        //         assoClub: 3
-        //     },
-        //     {
-        //         personId: "27",
-        //         name: "Patrik Grolimund",
-        //         dateOfBirth: "1980-08-19",
-        //         gender: GenderEL.M,
-        //         type: [PersonTypeEL.MEMBER, PersonTypeEL.COACH],
-        //         assoClub: 2
-        //     }
-        // ];
+        let coachRecords = [
+            {
+                personId: "12",
+                name: "Joachim Löw",
+                dateOfBirth: "1960-02-03",
+                gender: GenderEL.M,
+                type: [PersonTypeEL.COACH],
+                assoClub: 1
+            },
+            {
+                personId: "24",
+                name: "Martina Voss-Tecklenburg",
+                dateOfBirth: "1967-12-22",
+                gender: GenderEL.F,
+                type: [PersonTypeEL.COACH],
+                assoClub: 3
+            },
+            {
+                personId: "27",
+                name: "Patrik Grolimund",
+                dateOfBirth: "1980-08-19",
+                gender: GenderEL.M,
+                type: [PersonTypeEL.MEMBER, PersonTypeEL.COACH],
+                assoClub: 2
+            }
+        ];
 
         console.log('Generating test data...');
-        const response = await fetch( "../../test-data/coaches.json");
-        const coachRecords = await response.json();
+        // const response = await fetch( "../../test-data/coaches.json");
+        // const coachRecords = await response.json();
         await Promise.all( coachRecords.map( d => Coach.add( d)));
 
         console.log(`${coachRecords.length} coaches saved.`);

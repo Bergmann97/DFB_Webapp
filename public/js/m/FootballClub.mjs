@@ -73,10 +73,9 @@ class FootballClub {
         if ((constraintViolation instanceof NoConstraintViolation) &&
             id !== undefined) {
             let clubDocSn = await db.collection("clubs").doc( id).get();
-            // console.log("clubDocSn: " + clubDocSn);
             if (!clubDocSn.exists) {
                 constraintViolation = new ReferentialIntegrityConstraintViolation(
-                    "There is no football club record with this club ID!");
+                    `There is no football club record with this club ID (${id})!`);
             }
         }
         return constraintViolation;
@@ -241,7 +240,6 @@ FootballClub.retrieveBlock = async function (params) {
  *  Create a new football club record
  */
 FootballClub.add = async function (slots) {
-    console.log(slots);
     var validationResult = null,
         club = null;
     try {
@@ -292,20 +290,19 @@ FootballClub.update = async function (slots) {
                 throw validationResult;
             }
         }
-        if (slots.association && clubRec.association !== parseInt(slots.association)) {
-            validationResult = await FootballClub.checkAssociation( slots.association);
+        if (slots.association_id && clubRec.association !== parseInt(slots.association_id)) {
+            validationResult = await FootballClub.checkAssociation( slots.association_id);
             if (validationResult instanceof NoConstraintViolation) {
-                updatedSlots.association = parseInt(slots.association);
+                updatedSlots.association_id = parseInt(slots.association_id);
             } else {
                 throw validationResult;
             }
-        } else if (!parseInt(slots.association) && clubRec.association !== undefined) {
-            updatedSlots.association = firebase.firestore.FieldValue.delete();
+        } else if (!parseInt(slots.association_id) && clubRec.association !== undefined) {
+            updatedSlots.association_id = firebase.firestore.FieldValue.delete();
         }
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }
-
     let updatedProperties = Object.keys( updatedSlots);
     if (updatedProperties.length > 0) {
         await clubDocRef.withConverter( FootballClub.converter).update( updatedSlots);
@@ -326,7 +323,7 @@ FootballClub.destroy = async function (clubId) {
             clubsCollRef = db.collection("clubs"),
             playerQrySn = playersCollRef.where("assoClub_id", "==", parseInt(clubId)),
             coachQrySn = coachesCollRef.where("assoClub_id", "==", parseInt(clubId)),
-            memberQrySn = membersCollRef.where("assoClubIdRefs", "array-contains", clubId),
+            memberQrySn = membersCollRef.where("assoClubIdRefs", "array-contains", parseInt(clubId)),
             associatedPlayerDocSns = (await playerQrySn.get()).docs,
             associatedCoachDocSns = (await coachQrySn.get()).docs,
             associatedMemberDocSns = (await memberQrySn.get()).docs,
@@ -334,26 +331,25 @@ FootballClub.destroy = async function (clubId) {
 
         // initiate batch write
         const batch = db.batch();
-        console.log(associatedMemberDocSns);
         for (const am of associatedMemberDocSns) {
             const memberDocRef = membersCollRef.doc( am.id);
             // remove associated clubId from each Member record
             batch.update( memberDocRef, {
-                assoClubIdRefs: firebase.firestore.FieldValue.arrayRemove( clubId)
+                assoClubIdRefs: firebase.firestore.FieldValue.arrayRemove( parseInt(clubId))
             });
         }
         for (const ap of associatedPlayerDocSns) {
             const playerDocRef = playersCollRef.doc( ap.id);
             // remove associated football club from each player record
             batch.update( playerDocRef, {
-                assoClub: firebase.firestore.FieldValue.delete()
+                assoClub_id: firebase.firestore.FieldValue.delete()
             });
         }
         for (const ac of associatedCoachDocSns) {
             const coachDocRef = coachesCollRef.doc( ac.id);
             // remove associated football club from each coach record
             batch.update( coachDocRef, {
-                assoClub: firebase.firestore.FieldValue.delete()
+                assoClub_id: firebase.firestore.FieldValue.delete()
             });
         }
         // delete football club record
@@ -371,48 +367,47 @@ FootballClub.destroy = async function (clubId) {
 // Create test data
 FootballClub.generateTestData = async function () {
     try {
-        // let clubRecords = [
-        //     {
-        //         clubId: "1",
-        //         name: "Arsenal FC",
-        //         gender: GenderEL.M,
-        //         association_id: 1
-        //     },
-        //     {
-        //         clubId: "2",
-        //         name: "Bayern Munich",
-        //         gender: GenderEL.M,
-        //         association_id: 1
-        //     },
-        //     {
-        //         clubId: "3",
-        //         name: "Eintracht Frankfurt",
-        //         gender: GenderEL.M,
-        //         association_id: 2
-        //     },
-        //     {
-        //         clubId: "4",
-        //         name: "Bayern Munich",
-        //         gender: GenderEL.F,
-        //         association_id: 2
-        //     },
-        //     {
-        //         clubId: "5",
-        //         name: "Eintracht Frankfurt",
-        //         gender: GenderEL.F,
-        //         association_id: 3
-        //     },
-        //     {
-        //         clubId: "6",
-        //         name: "SGS Essen",
-        //         gender: GenderEL.F,
-        //         association_id: 3
-        //     }
-        // ];
+        let clubRecords = [
+            {
+                clubId: "1",
+                name: "Arsenal FC",
+                gender: GenderEL.M,
+                association_id: 1
+            },
+            {
+                clubId: "2",
+                name: "Bayern Munich",
+                gender: GenderEL.F,
+                association_id: 2
+            },
+            {
+                clubId: "3",
+                name: "Eintracht Frankfurt",
+                gender: GenderEL.M,
+                association_id: 2
+            },
+            {
+                clubId: "4",
+                name: "Bayern Munich",
+                gender: GenderEL.F,
+                association_id: 2
+            },
+            {
+                clubId: "5",
+                name: "Eintracht Frankfurt",
+                gender: GenderEL.F,
+                association_id: 3
+            },
+            {
+                clubId: "6",
+                name: "SGS Essen",
+                gender: GenderEL.F,
+                association_id: 3
+            }
+        ];
         console.log('Generating test data...');
-        const response = await fetch( "../../test-data/clubs.json");
-        const clubRecords = await response.json();
-        console.log(clubRecords);
+        // const response = await fetch( "../../test-data/clubs.json");
+        // const clubRecords = await response.json();
         await Promise.all( clubRecords.map( d => FootballClub.add( d)));
 
         console.log(`${clubRecords.length} football clubs saved.`);

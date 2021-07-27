@@ -105,17 +105,18 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = memberRec.dateOfBirth;
                 row.insertCell().textContent = GenderEL.enumLitNames[memberRec.gender - 1];
 
-                if (memberRec.assoClubs) {
-                    const assoClubsName = [];
+                if (memberRec.assoClubs && memberRec.assoClubs.length > 0) {
+                    const assoClubsToShow = [];
                     for (const club of memberRec.assoClubs) {
-                        assoClubsName.push(await FootballClub.retrieve(String(club)).then(value => value.name));
+                        assoClubsToShow.push(await FootballClub.retrieve(String(club)).then(value => value.name) + " ("
+                         + GenderEL.enumLitNames[await FootballClub.retrieve(String(club)).then(value => value.gender) - 1] + ")");
                     }
-                    row.insertCell().innerHTML = '<ul><li>' + assoClubsName.join("</li><li>"); + '</li></ul>';
+                    row.insertCell().innerHTML = '<ul><li>' + assoClubsToShow.join("</li><li>"); + '</li></ul>';
                 } else {
                     row.insertCell().textContent = "";
                 }
 
-                if (memberRec.assoAssociations) {
+                if (memberRec.assoAssociations && memberRec.assoAssociations.length > 0) {
                     const assoAssociationsName = [];
                     for (const asso of memberRec.assoAssociations) {
                         assoAssociationsName.push(await FootballAssociation.retrieve(String(asso)).then(value => value.name));
@@ -154,8 +155,9 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = GenderEL.enumLitNames[playerRecord.gender - 1];
                 if (playerRecord.assoClub) {
                     const clubName = await FootballClub.retrieve(String(playerRecord.assoClub)).then(value => value.name);
+                    const clubGender = await FootballClub.retrieve(String(playerRecord.assoClub)).then(value => value.gender);
                     if (clubName !== undefined) {
-                        row.insertCell().textContent = clubName;
+                        row.insertCell().textContent = clubName + " (" + GenderEL.enumLitNames[clubGender - 1] + ")";
                     } else {
                         row.insertCell().textContent = "";
                     }
@@ -194,7 +196,8 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = coachRecord.dateOfBirth;
                 row.insertCell().textContent = GenderEL.enumLitNames[coachRecord.gender - 1];
                 row.insertCell().textContent = coachRecord.assoClub ?
-                    await FootballClub.retrieve(String(coachRecord.assoClub)).then(value => value.name) : "";
+                    await FootballClub.retrieve(String(coachRecord.assoClub)).then(value => value.name)
+                    + " (" + GenderEL.enumLitNames[await FootballClub.retrieve(String(coachRecord.assoClub)).then(value => value.gender) - 1] + ")" : "";
 
 
             }

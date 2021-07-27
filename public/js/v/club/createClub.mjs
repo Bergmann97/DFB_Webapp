@@ -6,7 +6,7 @@
 /***************************************************************
  Import classes, datatypes and utility procedures
  ***************************************************************/
-import { GenderEL } from "../../m/Person.mjs";
+import Person, { GenderEL } from "../../m/Person.mjs";
 import { createChoiceWidget, showProgressBar } from "../../../lib/util.mjs";
 import FootballClub from "../../m/FootballClub.mjs";
 import FootballAssociation from "../../m/FootballAssociation.mjs";
@@ -38,9 +38,9 @@ for (const assoRec of assoRecords) {
 /***************************************************************
  Add event listeners for responsive validation
  ***************************************************************/
-formEl.clubId.addEventListener("input", function () {
-    formEl.clubId.setCustomValidity( FootballClub.checkClubId
-    ( formEl.clubId.value).message);
+formEl.clubId.addEventListener("input", async function () {
+    let responseValidation = await FootballClub.checkClubIdAsId( formEl.clubId.value);
+    formEl["clubId"].setCustomValidity( responseValidation.message);
 });
 formEl.name.addEventListener("input", function () {
     formEl.name.setCustomValidity( FootballClub.checkName
@@ -91,7 +91,6 @@ async function handleSaveButtonClickEvent() {
 
     if (formEl.checkValidity()) {
         await FootballClub.add( slots);
-        selectAssoEl.innerHTML = "";
         formEl.reset();
     }
     showProgressBar( "hide");

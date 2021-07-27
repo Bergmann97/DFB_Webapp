@@ -116,7 +116,6 @@ class NationalTeam {
  */
 NationalTeam.converter = {
     toFirestore: function (team) {
-        console.log(team.players);
         const data = {
             gender: team.gender,
             coach_id : team.coach,

@@ -16,7 +16,8 @@ function setupUiByUserStatus() {
     const page = window.location.pathname,
         allowedPages = ["/","/index.html",
             "/authenticateUser.html","/person/retrieveAndListAllPersons.html",
-            "/association/retrieveAndListAllAssociations.html", "/club/retrieveAndListAllClubs.html"],
+            "/association/retrieveAndListAllAssociations.html", "/club/retrieveAndListAllClubs.html",
+            "/nationalTeam/retrieveAndListAllNationalTeams.html"],
         loginMngEls = document.querySelectorAll("header > div#login-management > small");
 
     // reset (hide) all login management elements: [0]sign in/up , [1]sign out

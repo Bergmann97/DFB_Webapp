@@ -36,22 +36,25 @@ let cancelSyncDBwithUI = null;
 // set up the football club selection list
 fillSelectWithOptions( selectClubEl, clubRecords, {valueProp:"clubId", displayProp:"name"});
 
+// load all football association records
+const assoRecords = await FootballAssociation.retrieveAll();
+for (const assoRec of assoRecords) {
+    const optionEl = document.createElement("option");
+    optionEl.text = assoRec.name;
+    optionEl.value = assoRec.assoId;
+
+    selectAssoEl.add( optionEl, null);
+}
+selectAssoEl.disabled = true;
+
 // when a football club is selected, fill the form with its data
 selectClubEl.addEventListener("change", async function () {
     const clubId = selectClubEl.value;
     if (clubId) {
+        selectAssoEl.disabled = false;
+
         // retrieve up-to-date football club record
         const clubRec = await FootballClub.retrieve( clubId);
-
-        // // load all football association records
-        const assoRecords = await FootballAssociation.retrieveAll();
-        for (const assoRec of assoRecords) {
-            const optionEl = document.createElement("option");
-            optionEl.text = assoRec.name;
-            optionEl.value = assoRec.assoId;
-
-            selectAssoEl.add( optionEl, null);
-        }
 
         formEl.clubId.value = clubRec.clubId;
         formEl.name.value = clubRec.name;
@@ -115,7 +118,7 @@ async function handleSubmitButtonClickEvent() {
         clubId: formEl.clubId.value,
         name: formEl.name.value,
         gender: genderFieldsetEl.getAttribute("data-value"),
-        association: parseInt(formEl.selectAsso.value)
+        association_id: parseInt(formEl.selectAsso.value)
     };
 
     // set error messages in case of constraint violations
@@ -128,7 +131,7 @@ async function handleSubmitButtonClickEvent() {
     if (formEl.checkValidity()) {
         await FootballClub.update(slots);
         // update the selection list option
-        selectClubEl.innerHTML = "";
+        selectClubEl.options[selectClubEl.selectedIndex].text = slots.name;
         formEl.reset();
     }
 }

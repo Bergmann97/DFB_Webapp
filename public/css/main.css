@@ -313,7 +313,8 @@ form > div > label > div.MultiChoiceWidget,
 form > div > label > input[type="date"],
 form > div > label > input[type="email"],
 form > div > label > input[type="password"],
-form > div > label > output {
+form > div > label > output,
+form > div.widget > label > span {
     position: absolute;
     left: 12em;
 }

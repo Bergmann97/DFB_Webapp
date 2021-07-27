@@ -65,7 +65,6 @@ selectTeamEl.addEventListener("change", async function () {
         selectCoachEl.value = teamRec.coach;
 
         const players = await NationalTeam.retrieve(gender).then(value => value.players);
-        console.log(players);
         if (players) {
             createMultiSelectionWidget(playersUpWidget, players,
                 "upPlayers", "Enter ID", 11);

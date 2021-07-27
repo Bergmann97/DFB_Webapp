@@ -23,9 +23,9 @@ const formEl = document.forms['Person'],
     genderFieldsetEl = formEl.querySelector("fieldset[data-bind='gender']"),
     typeFieldsetEl = formEl.querySelector("fieldset[data-bind='type']"),
     assoClubsCrtWidget = formEl.querySelector(
-        "form > div > .MultiSelectionWidgetClub"),
+        "div.MultiSelectionWidgetClub"),
     assoAssociationsCrtWidget = formEl.querySelector(
-        "form > div > .MultiSelectionWidgetAsso"),
+        "div.MultiSelectionWidgetAsso"),
     selectClubPlayerEl = formEl.selectClubPlayer,
     selectClubCoachEl = formEl.selectClubCoach,
     selectAssoPresidentEl = formEl.selectAssoPresident,
@@ -76,8 +76,9 @@ typeFieldsetEl.addEventListener("change", handleTypeSelectChangeEvent);
 /***************************************************************
  Add event listeners for responsive validation
  ***************************************************************/
-formEl.personId.addEventListener("input", function () {
-    formEl.personId.setCustomValidity( Person.checkPersonIdAsId( formEl.personId.value).message);
+formEl.personId.addEventListener("input", async function () {
+    let responseValidation = await Person.checkPersonIdAsId( formEl.personId.value);
+    formEl["personId"].setCustomValidity( responseValidation.message);
 });
 formEl.name.addEventListener("input", function () {
     formEl.name.setCustomValidity( Person.checkName( formEl.name.value).message);
@@ -107,9 +108,7 @@ async function handleTypeSelectChangeEvent(e) {
             selectedValues.push(i);
 
             if (i === ((PersonTypeEL.MEMBER) - 1)) {
-                console.log("MEMBER");
             } else if (i === ((PersonTypeEL.PLAYER) - 1)) {
-                console.log("PLAYER");
 
                 formEl.selectClubPlayer.addEventListener("change", function () {
                     formEl.selectClubPlayer.setCustomValidity(
@@ -117,8 +116,6 @@ async function handleTypeSelectChangeEvent(e) {
                     );
                 });
             } else if (i === ((PersonTypeEL.COACH) - 1)) {
-                console.log("COACH");
-
                 formEl.selectClubCoach.addEventListener("change", function () {
                     formEl.selectClubCoach.setCustomValidity(
                         (formEl.selectClubCoach.value.length > 0) ? "" : "No associated club selected!"
@@ -130,10 +127,7 @@ async function handleTypeSelectChangeEvent(e) {
                 //         Coach.checkAssoClub(formEl.selectClubCoach.value).message);
                 // });
             } else if (i === ((PersonTypeEL.PRESIDENT) - 1)) {
-                console.log("PRESIDENT");
-
                 formEl.selectAssoPresident.addEventListener("change", function () {
-                    console.log(selectAssoPresidentEl.value);
                     formEl.selectAssoPresident.setCustomValidity(
                         (formEl.selectAssoPresident.value.length > 0) ? "" : "No associated association selected!"
                     );
@@ -238,6 +232,7 @@ async function handleSaveButtonClickEvent() {
 
             if (formEl.checkValidity()) {
                 slots.assoClub_id = parseInt(formEl.selectClubPlayer.value);
+
                 await Player.add(slots);
             }
         }
@@ -250,6 +245,7 @@ async function handleSaveButtonClickEvent() {
 
             if (formEl.checkValidity()) {
                 slots.assoClub_id = parseInt(formEl.selectClubCoach.value);
+
                 await Coach.add(slots);
             }
         }
@@ -262,6 +258,7 @@ async function handleSaveButtonClickEvent() {
 
             if (formEl.checkValidity()) {
                 slots.assoAssociation_id = parseInt(formEl.selectAssoPresident.value);
+
                 await President.add(slots);
             }
         }

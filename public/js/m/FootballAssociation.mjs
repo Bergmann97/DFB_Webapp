@@ -33,6 +33,7 @@ class FootballAssociation {
         return this._assoId;
     };
     static checkAssoId(assoId) {
+        assoId = parseInt(assoId);
         if (!assoId) {
             return new NoConstraintViolation();  // may be optional as an IdRef
         } else {
@@ -73,7 +74,7 @@ class FootballAssociation {
             let assoDocSn = await db.collection("associations").doc( String(id)).get();
             if (!assoDocSn.exists) {
                 constraintViolation = new ReferentialIntegrityConstraintViolation(
-                    "There is no football association record with this association ID!");
+                    `There is no football association record with this association ID (${id})!`);
             }
         }
         return constraintViolation;
@@ -117,7 +118,7 @@ class FootballAssociation {
     static async checkSupAssoIdAsIdRef( supAssociation_id) {
         var constraintViolation = FootballAssociation.checkAssoId( supAssociation_id);
         if ((constraintViolation instanceof NoConstraintViolation) && supAssociation_id) {
-            let assoDocSn = await db.collection("associations").doc( supAssociation_id.toString()).get();
+            let assoDocSn = await db.collection("associations").doc( supAssociation_id).get();
             if (!assoDocSn.exists) {
                 constraintViolation = new ReferentialIntegrityConstraintViolation(
                     `There is no football association record with Association ID ${supAssociation_id}!`);
@@ -225,7 +226,6 @@ FootballAssociation.retrieveBlock = async function (params) {
  *  Create a new football association record
  */
 FootballAssociation.add = async function (slots) {
-    console.log(slots);
     var validationResult = null,
         asso = null;
 
@@ -302,7 +302,7 @@ FootballAssociation.destroy = async function (assoId) {
             presidentsCollRef = db.collection("presidents"),
             assosCollRef = db.collection("associations"),
             presidentQrySn = presidentsCollRef.where("assoAssociation_id", "==", parseInt(assoId)),
-            memberQrySn = membersCollRef.where("assoAssociationIdRefs", "array-contains", assoId),
+            memberQrySn = membersCollRef.where("assoAssociationIdRefs", "array-contains", parseInt(assoId)),
             associatedPresidentDocSns = (await presidentQrySn.get()).docs,
             associatedMemberDocSns = (await memberQrySn.get()).docs,
             assoDocRef = assosCollRef.doc( assoId);
@@ -313,7 +313,7 @@ FootballAssociation.destroy = async function (assoId) {
             const memberDocRef = membersCollRef.doc( am.id);
             // remove associated assoId from each Member record
             batch.update( memberDocRef, {
-                assoAssociationIdRefs: firebase.firestore.FieldValue.arrayRemove( assoId)
+                assoAssociationIdRefs: firebase.firestore.FieldValue.arrayRemove( parseInt(assoId))
             });
         }
         for (const ap of associatedPresidentDocSns) {

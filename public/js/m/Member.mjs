@@ -148,6 +148,12 @@ Member.add = async function (slots) {
     var validationResult = null,
         member = null;
     try {
+        if (slots.assoClubIdRefs === undefined) {
+            slots.assoClubIdRefs = [];
+        }
+        if (slots.assoAssociationIdRefs === undefined) {
+            slots.assoAssociationIdRefs = [];
+        }
         member = new Member(slots);
         validationResult = await Member.checkPersonId( member.personId);
         if (!validationResult instanceof NoConstraintViolation) {
@@ -222,6 +228,10 @@ Member.update = async function ({personId, name, dateOfBirth, gender, type,
             assoClubIdRefsToRemove = assoClubIdRefsToRemove.map( d => +d);
             assoClubIdRefs = assoClubIdRefs.filter( d => !assoClubIdRefsToRemove.includes( d));
         }
+
+        if (assoClubIdRefs === undefined) {
+            assoClubIdRefs = [];
+        }
         updatedSlots.assoClubIdRefs = assoClubIdRefs;
 
         let assoAssociationIdRefs = memberRec.assoAssociations;
@@ -232,7 +242,12 @@ Member.update = async function ({personId, name, dateOfBirth, gender, type,
             assoAssociationIdRefsToRemove = assoAssociationIdRefsToRemove.map( d => +d);
             assoAssociationIdRefs = assoAssociationIdRefs.filter( d => !assoAssociationIdRefsToRemove.includes( d));
         }
+
+        if (assoAssociationIdRefs === undefined) {
+            assoAssociationIdRefs = [];
+        }
         updatedSlots.assoAssociationIdRefs = assoAssociationIdRefs;
+
     } catch (e) {
         console.log(`${e.constructor.name}: ${e.message}`);
     }

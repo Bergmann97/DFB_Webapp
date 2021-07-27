@@ -54,6 +54,11 @@ undisplayAllSegmentFields( formEl, PersonTypeEL.labels);
 // load all football association records
 const associationRecords = await FootballAssociation.retrieveAll();
 
+createMultiSelectionWidget( assoClubsUpWidget, [],
+    "upAssoClubs", "Enter ID", 0);
+createMultiSelectionWidget( assoAssociationsUpWidget, [],
+    "upAssoAssociations", "Enter ID", 0);
+
 // for type 'Player' (associated clubs)
 fillSelectWithOptionsClub( selectClubPlayerEl,
     await FootballClub.retrieveAll().then(value=>value),
@@ -101,11 +106,11 @@ selectPersonEl.addEventListener("change", async function () {
                     const assoClubs = await Member.retrieve(personId).then(value => value.assoClubs);
                     const assoAssociations = await Member.retrieve(personId).then(value => value.assoAssociations);
 
-                    if (assoClubs) {
+                    if (typeof assoClubs !== 'undefined') {
                         createMultiSelectionWidget(assoClubsUpWidget, assoClubs,
                             "upAssoClubs", "Enter ID", 0);
                     }
-                    if (assoAssociations) {
+                    if (typeof assoAssociations !== 'undefined') {
                         createMultiSelectionWidget(assoAssociationsUpWidget, assoAssociations,
                             "upAssoAssociations", "Enter ID", 0);
                     }
@@ -152,7 +157,6 @@ async function handleTypeSelectChangeEvent(e) {
             selectedValues.push(i);
 
             if (i === ((PersonTypeEL.MEMBER) - 1)) {
-                console.log("MEMBER");
             } else if (i === ((PersonTypeEL.PLAYER) - 1)) {
                 formEl.selectClubPlayer.addEventListener("change", function () {
                     formEl.selectClubPlayer.setCustomValidity(
@@ -273,6 +277,7 @@ async function handleSubmitButtonClickEvent() {
                     assoClubIdRefsToAdd.push(assoClubItemEl.getAttribute("data-value"));
                 }
             }
+
             // if the add/remove list is non-empty, create a corresponding slot
             if (assoClubIdRefsToRemove.length > 0) {
                 slots.assoClubIdRefsToRemove = assoClubIdRefsToRemove;
@@ -316,10 +321,13 @@ async function handleSubmitButtonClickEvent() {
                     } else formEl["upAssoAssociations"].setCustomValidity("");
                 }
             }
-            if (formEl.checkValidity()) {
-                const memberExistCheck = await Member.retrieve(personId);
 
-                if (!memberExistCheck) {
+
+            if (formEl.checkValidity()) {
+                const memberExistCheck = (await db.collection("members").doc( personId)
+                    .withConverter( Member.converter).get()).data();
+
+                if (typeof memberExistCheck === 'undefined') {
                     await Member.add(slots);
                 } else {
                     await Member.update(slots);
@@ -329,9 +337,9 @@ async function handleSubmitButtonClickEvent() {
 
             }
         } else {
-            const memberRetrieveCheck = await Member.retrieve(personId);
-
-            if (memberRetrieveCheck) {
+            const memberExistCheck = (await db.collection("members").doc( personId)
+                .withConverter( Member.converter).get()).data();
+            if (typeof memberExistCheck !== 'undefined') {
                 await Member.destroy(personId);
             }
         }
@@ -342,10 +350,11 @@ async function handleSubmitButtonClickEvent() {
             );
 
             if (formEl.checkValidity()) {
-                const playerExistCheck = await Player.retrieve(personId);
-                slots.assoClub = parseInt(formEl.selectClubPlayer.value);
+                const playerExistCheck = (await db.collection("players").doc( personId)
+                    .withConverter( Member.converter).get()).data();
+                slots.assoClub_id = parseInt(formEl.selectClubPlayer.value);
 
-                if (!playerExistCheck) {
+                if (typeof playerExistCheck === 'undefined') {
                     await Player.add(slots);
                 } else {
                     await Player.update(slots);
@@ -353,7 +362,8 @@ async function handleSubmitButtonClickEvent() {
             }
 
         } else {
-            const playerRetrieveCheck = await Player.retrieve(personId);
+            const playerRetrieveCheck = (await db.collection("players").doc( personId)
+                .withConverter( Member.converter).get()).data();
             if (playerRetrieveCheck) {
                 await Player.destroy(personId);
             }
@@ -366,10 +376,11 @@ async function handleSubmitButtonClickEvent() {
             );
 
             if (formEl.checkValidity()) {
-                const coachExistCheck = await Coach.retrieve(personId);
-                slots.assoClub = parseInt(formEl.selectClubCoach.value);
+                const coachExistCheck = (await db.collection("coaches").doc( personId)
+                    .withConverter( Member.converter).get()).data();
+                slots.assoClub_id = parseInt(formEl.selectClubCoach.value);
 
-                if (!coachExistCheck) {
+                if (typeof coachExistCheck === 'undefined') {
                     await Coach.add(slots);
                 } else {
                     await Coach.update(slots);
@@ -377,7 +388,8 @@ async function handleSubmitButtonClickEvent() {
             }
 
         } else {
-            const coachRetrieveCheck = await Coach.retrieve(personId);
+            const coachRetrieveCheck = (await db.collection("coaches").doc( personId)
+                .withConverter( Member.converter).get()).data();
             if (coachRetrieveCheck) {
                 await Coach.destroy(personId);
             }
@@ -390,17 +402,21 @@ async function handleSubmitButtonClickEvent() {
             );
 
             if (formEl.checkValidity()) {
-                const presidentExistCheck = await President.retrieve(personId);
-                slots.assoAssociation = parseInt(formEl.selectAssoPresident.value);
+                // const presidentExistCheck = await President.retrieve(personId);
+                const presidentExistCheck = (await db.collection("presidents").doc( personId)
+                    .withConverter( Member.converter).get()).data();
+                slots.assoAssociation_id = parseInt(formEl.selectAssoPresident.value);
 
-                if (!presidentExistCheck) {
+                if (typeof presidentExistCheck ==='undefined') {
                     await President.add(slots);
                 } else {
                     await President.update(slots);
                 }
             }
         } else {
-            const presidentRetrieveCheck = await President.retrieve(personId);
+            // const presidentRetrieveCheck = await President.retrieve(personId);
+            const presidentRetrieveCheck = (await db.collection("presidents").doc( personId)
+                .withConverter( Member.converter).get()).data();
             if (presidentRetrieveCheck) {
                 await President.destroy(personId);
             }

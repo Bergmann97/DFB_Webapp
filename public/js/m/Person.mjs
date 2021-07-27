@@ -107,7 +107,7 @@ class Person {
   };
   static checkName(n) {
     if (!n) {
-      return new MandatoryValueConstraintViolation("[Person] A name must be provided!");
+      return new MandatoryValueConstraintViolation("A name must be provided!");
     } else if (!isNonEmptyString(n)) {
       return new RangeConstraintViolation("The name must be a non-empty string!");
     } else {
