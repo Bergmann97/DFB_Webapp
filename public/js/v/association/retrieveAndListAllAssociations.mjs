@@ -49,9 +49,9 @@ async function renderList( order) {
 
     // for each football association, create a table row with a cell for each attribute
     for (let asso of assoRecords) {
-        const presidentQrySn = presidentsCollRef.where("assoAssociation", "==", parseInt(asso.assoId)),
+        const presidentQrySn = presidentsCollRef.where("assoAssociation_id", "==", parseInt(asso.assoId)),
             memberQrySn = membersCollRef.where("assoAssociationIdRefs", "array-contains", parseInt(asso.assoId)),
-            clubQrySn = clubsCollRef.where("association", "==", parseInt(asso.assoId)),
+            clubQrySn = clubsCollRef.where("association_id", "==", parseInt(asso.assoId)),
             associatedPresidentDocSns = (await presidentQrySn.get()).docs,
             associatedMemberDocSns = (await memberQrySn.get()).docs,
             associatedClubDocSns = (await clubQrySn.get()).docs;
@@ -61,7 +61,7 @@ async function renderList( order) {
         row.insertCell().textContent = asso.name;
 
         const supAssociations = [];
-        if (asso.supAssociations) {
+        if (asso.supAssociations.length > 0) {
             for (const sa of asso.supAssociations) {
                 supAssociations.push(await FootballAssociation.retrieve(String(sa)).then(value => value.name));
             }

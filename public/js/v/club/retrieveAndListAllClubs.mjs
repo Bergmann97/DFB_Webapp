@@ -63,8 +63,8 @@ async function renderList( order) {
 
     // for each football club, create a table row with a cell for each attribute
     for (let club of clubRecords) {
-        const playerQrySn = playersCollRef.where("assoClub", "==", parseInt(club.clubId)),
-            coachQrySn = coachesCollRef.where("assoClub", "==", parseInt(club.clubId)),
+        const playerQrySn = playersCollRef.where("assoClub_id", "==", parseInt(club.clubId)),
+            coachQrySn = coachesCollRef.where("assoClub_id", "==", parseInt(club.clubId)),
             assoQrySn = assosCollRef.where("assoId", "==", String(club.association)),
             memberQrySn = membersCollRef.where("assoClubIdRefs", "array-contains", parseInt(club.clubId)),
             associatedPlayerDocSns = (await playerQrySn.get()).docs,
@@ -118,6 +118,7 @@ async function renderList( order) {
         }
         // row.insertCell().textContent = assoPlayers.length > 0 ? assoPlayers.length : "0";
 
+        console.log(associatedCoachDocSns);
         for (const ac of associatedCoachDocSns) {
             // console.log(b.id);
             // assoPlayers.push(ap.id);
