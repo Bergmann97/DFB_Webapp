@@ -105,13 +105,13 @@ When handling the described parts, it is also needed that the differentiation in
 | Delete person | Delete data of a person |
 | Display persons | Show a list of persons depending on the type of person |
 | **Football club** |  |
-| Create football club | Create a new football club record with information (referenced football association, name, gender, coach, players, members) |
+| Create football club | Create a new football club record with information (name, gender, referenced football association) |
 | Update football club | Modify data of an existing football club |
-| Display football clubs | Show a list of football clubs (including the number of members in the club) |
+| Display football clubs | Show a list of football clubs (including name of referenced football association, name of coach, names of players, members in the club) |
 | **Football association** |  |
-| Create football association | Create a new football association record with information (name, gender, president, associated football clubs, members, superior football association (optional)) |
+| Create football association | Create a new football association record with information (name, president, superior football association (optional)) |
 | Update football association | Modify data of an existing football association |
-| Display football associations | Show a list of football associations (including the number of associated football clubs) |
+| Display football associations | Show a list of football associations (including the number of associated football clubs and members) |
 | **National team** |  |
 | Create national team | Create a new national team record by adding/selecting players and coach and gender information is additionally needed |
 | Update national team | Modify a national team data (add/change players or change coach) |
