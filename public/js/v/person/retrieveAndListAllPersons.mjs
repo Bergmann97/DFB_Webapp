@@ -103,7 +103,7 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = memberRec.personId;
                 row.insertCell().textContent = memberRec.name;
                 row.insertCell().textContent = memberRec.dateOfBirth;
-                row.insertCell().textContent = GenderEL.enumLitNames[memberRec.gender - 1];
+                row.insertCell().textContent = GenderEL.labels[memberRec.gender - 1];
 
                 if (memberRec.assoClubs && memberRec.assoClubs.length > 0) {
                     const assoClubsToShow = [];
@@ -152,7 +152,7 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = playerRecord.personId;
                 row.insertCell().textContent = playerRecord.name;
                 row.insertCell().textContent = playerRecord.dateOfBirth;
-                row.insertCell().textContent = GenderEL.enumLitNames[playerRecord.gender - 1];
+                row.insertCell().textContent = GenderEL.labels[playerRecord.gender - 1];
                 if (playerRecord.assoClub) {
                     const clubName = await FootballClub.retrieve(String(playerRecord.assoClub)).then(value => value.name);
                     const clubGender = await FootballClub.retrieve(String(playerRecord.assoClub)).then(value => value.gender);
@@ -194,7 +194,7 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = coachRecord.personId;
                 row.insertCell().textContent = coachRecord.name;
                 row.insertCell().textContent = coachRecord.dateOfBirth;
-                row.insertCell().textContent = GenderEL.enumLitNames[coachRecord.gender - 1];
+                row.insertCell().textContent = GenderEL.labels[coachRecord.gender - 1];
                 row.insertCell().textContent = coachRecord.assoClub ?
                     await FootballClub.retrieve(String(coachRecord.assoClub)).then(value => value.name)
                     + " (" + GenderEL.enumLitNames[await FootballClub.retrieve(String(coachRecord.assoClub)).then(value => value.gender) - 1] + ")" : "";
@@ -227,13 +227,16 @@ async function typeRender(order, type) {
                 row.insertCell().textContent = presidentRecord.personId;
                 row.insertCell().textContent = presidentRecord.name;
                 row.insertCell().textContent = presidentRecord.dateOfBirth;
-                row.insertCell().textContent = GenderEL.enumLitNames[presidentRecord.gender - 1];
+                row.insertCell().textContent = GenderEL.labels[presidentRecord.gender - 1];
                 row.insertCell().textContent = presidentRecord.assoAssociation ?
                     await FootballAssociation.retrieve(String(presidentRecord.assoAssociation)).then(value => value.name) : "";
             }
+        } else {
+            previousBtnEl.disabled = true;
         }
     } else {
         preNextSpan.style.visibility = "visible";
+        previousBtnEl.disabled = true;
 
         trEl.innerHTML = "";
         tableBodyEl.innerHTML = "";
